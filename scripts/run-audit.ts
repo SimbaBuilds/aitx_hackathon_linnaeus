@@ -31,8 +31,19 @@ function loadEnvLocal(): void {
     if (eq < 0) continue;
     const key = line.slice(0, eq).trim();
     let val = line.slice(eq + 1).trim();
-    if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+    const quoted =
+      (val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"));
+    if (quoted) {
       val = val.slice(1, -1);
+    } else {
+      // strip inline comments on unquoted values (dotenv semantics): a leading '#'
+      // or a ' #' means the rest is a comment. Guards against placeholder lines
+      // like `CANDLE_BASE_URL=   # http://<brev-ip>:8000/v1` reading as a real URL.
+      if (val.startsWith("#")) val = "";
+      else {
+        const hash = val.indexOf(" #");
+        if (hash >= 0) val = val.slice(0, hash).trim();
+      }
     }
     if (val && process.env[key] === undefined) process.env[key] = val;
   }

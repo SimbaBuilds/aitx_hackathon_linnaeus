@@ -55,6 +55,35 @@ export interface CandleConfig {
   temperature?: number;
 }
 
+// Convert our simplified ChatMessage into the OpenAI wire shape. Assistant
+// tool-call turns must be re-expanded to { id, type:"function", function:{…} }
+// or the API rejects the next request ("tool_calls.0.type: Field required").
+function toWireMessage(
+  m: ChatMessage,
+): OpenAI.Chat.Completions.ChatCompletionMessageParam {
+  if (m.role === "assistant" && m.tool_calls && m.tool_calls.length) {
+    return {
+      role: "assistant",
+      content: m.content ?? "",
+      tool_calls: m.tool_calls.map((tc) => ({
+        id: tc.id,
+        type: "function" as const,
+        function: { name: tc.name, arguments: tc.arguments },
+      })),
+    };
+  }
+  if (m.role === "tool") {
+    return {
+      role: "tool",
+      content: m.content ?? "",
+      tool_call_id: m.tool_call_id ?? "",
+    };
+  }
+  if (m.role === "system") return { role: "system", content: m.content ?? "" };
+  if (m.role === "assistant") return { role: "assistant", content: m.content ?? "" };
+  return { role: "user", content: m.content ?? "" };
+}
+
 // Factory. Reads env by default; pass overrides for tests.
 //   prod  when CANDLE_BASE_URL is set   → { baseURL, model: CANDLE_MODEL, apiKey: dummy-ok }
 //   dev   otherwise                     → Anthropic OpenAI-compat, Opus 4.8, ANTHROPIC_API_KEY
@@ -94,11 +123,12 @@ export function createCandle(cfg: CandleConfig = {}): CandleClient {
     async chat(messages, tools) {
       const req: OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming = {
         model: resolved.model,
-        temperature,
-        // seed is supported by vLLM; Anthropic's compat layer may reject it, so
-        // only send it on the prod (vLLM) path (undefined is dropped by the SDK).
+        // seed + temperature are for the pinned vLLM candle (determinism). The dev
+        // Opus stand-in deprecates temperature and rejects unknown params, so send
+        // neither on the dev path (undefined is dropped by the SDK).
         seed: isProd ? seed : undefined,
-        messages: messages as unknown as OpenAI.Chat.Completions.ChatCompletionMessageParam[],
+        temperature: isProd ? temperature : undefined,
+        messages: messages.map(toWireMessage),
         ...(tools && tools.length
           ? {
               tools: tools.map((t) => ({
