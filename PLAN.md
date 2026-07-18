@@ -150,6 +150,8 @@ Full component detail, quickstart commands, VRAM tiers, starter `policy.yaml`, a
 | Doc | Role |
 |---|---|
 | `PLAN.md` | **This file** — status & decisions tracker |
+| `implementation_plan.md` | **Build execution** — contracts, workstreams, sequence, delegation blueprint, M1–M3 |
+| `camerons_task.md` | **Human-only tasks** — creds/keys/OAuth, serving commands, ground-truth facts |
 | `brainstorming_artifact.md` | Full thesis / system rationale |
 | `talking_points.md` | Presentation spine, framing, one-liners |
 | `specs.md` | Terse probe/scoring outline |
