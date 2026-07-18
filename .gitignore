@@ -51,3 +51,7 @@ supabase/.temp
 
 # real-run artifacts
 .audit-output/
+
+# browser automation artifacts
+.playwright-mcp/
+jupyter-state-*.png

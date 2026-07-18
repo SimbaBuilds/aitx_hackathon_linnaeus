@@ -10,36 +10,56 @@ Last updated: 2026-07-18 (Sat).
 
 ## 🔴 TIER 1 — do first (unblocks parallel work + banks the $500)
 
-### 1. Stand up the vLLM + Nemotron endpoint (WS-A — GPU, only you)
-This is independent of everything else and banks the $500 vLLM bounty. Sequence:
+### 1. Stand up the vLLM + Nemotron endpoint (WS-A — GPU) — ✅ DONE (2026-07-18)
+**Live:** `nemotron` (Nemotron-3-Nano-30B-A3B **FP8**) on vLLM, H100 80GB (MASSEDCOMPUTE via Brev). Endpoint: `https://8000-6b6iq7v4d.brevlab.com/v1` (public). Tool-calling **verified** (nano_v3 reasoning + qwen3_coder tool parser). In `.env.local` as `CANDLE_BASE_URL`/`CANDLE_MODEL`. Resolves **V6 = H100→FP8** and confirms **L21 = nano_v3** (not deepseek_r1).
+- ⚠️ **Only remaining thing YOU do here: STOP the instance in Brev when we're not actively testing** — it's ~$3.28/hr. Restart + re-run `bash run_vllm.sh` (already on the box) to bring it back.
+- Launch script lives at `/home/shadeform/run_vllm.sh` on the box; logs to `/home/shadeform/vllm.log`.
 
-1. **Brev:** launch a GPU instance. Prefer the ready-made **"Deploying Nemotron-3-Nano with vLLM" Launchable** if it's still listed.
-2. **Confirm GPU class (V6):** if **Blackwell** (B200 / RTX PRO 6000) → use the **NVFP4** checkpoint (~21 GB). If **Hopper/Ampere** (H100 / A100) → use **FP8** (~32 GB, fits H100 80 GB). Tell me which — it fixes the model tag.
-3. **Serve** (swap `FP8`→`NVFP4` per step 2). `--host 0.0.0.0` is load-bearing — it must be **host-visible, not localhost**, or the sandbox/app can't reach it:
-   ```bash
-   vllm serve nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-FP8 \
-     --host 0.0.0.0 --port 8000 \
-     --served-model-name nemotron-candle \
-     --tool-call-parser qwen3_coder \
-     --reasoning-parser nano_v3
-   ```
-   ⚠️ `--reasoning-parser nano_v3` (Nano) / `super_v3` (Super) — **NOT** `deepseek_r1`, which breaks tool calling (L21). Our probe agent needs tool calls.
-4. **Smoke test** (from the box):
-   ```bash
-   curl http://localhost:8000/v1/models
-   ```
-   then a tool-calling check (I'll hand you the exact JSON body in a `scripts/serving/smoke.sh` — WS-A agent writes it; you run it).
-5. **Give me the endpoint:** the box's **public or LAN IP + port** → `CANDLE_BASE_URL=http://<ip>:8000/v1`. If the model is gated on HF, you may need `HUGGING_FACE_HUB_TOKEN` set on the box before serving.
-6. **Stop the instance when idle** — $100 Brev ≈ 50 h only if you don't leave it running (L20).
+<details><summary>Original setup instructions (kept for reference / restart)</summary>
+
+Independent of everything else; banks the $500 vLLM bounty. **You have zero setup experience here, so use the Launchable path (A) — it's one click and comes preconfigured with the exact model + serve command.**
+
+**Docs:** [Brev quickstart](https://docs.nvidia.com/brev/getting-started/quickstart) · [console walkthrough](https://docs.nvidia.com/brev/guides/console-reference) · [Nemotron-3-Nano vLLM blog (exact commands)](https://vllm.ai/blog/2025-12-15-run-nvidia-nemotron-3-nano) · [cookbook notebook](https://github.com/NVIDIA-NeMo/Nemotron/blob/main/usage-cookbook/Nemotron-3-Nano/vllm_cookbook.ipynb)
+
+#### ➤ Path A — the Launchable (RECOMMENDED, no guessing)
+1. Open the **["Deploying NVIDIA Nemotron-3-Nano with vLLM" Launchable](https://brev.nvidia.com/launchable/deploy?launchableID=env-36ikINrMffBCbrtTVLr6MFcllcs)**.
+2. Sign in to Brev (NVIDIA account). If prompted, add a payment method — **your $100 Brev bounty credit should cover it; stop the instance when idle** (L20).
+3. Click **Deploy Launchable** and pick a GPU. Any of these serve the 30B model fine — cheapest that fits wins:
+   - **RTX PRO 6000** (Blackwell, 96 GB) — great + cheap; enables **NVFP4**.
+   - **H100** (Hopper, 80 GB) — safe default; use **FP8**.
+   - **B200** (Blackwell) — overkill but fine; NVFP4.
+   - *(avoid A100 40 GB — too small for FP8; A100 80 GB is OK.)*
+   → **Tell me which GPU it gave you** (that resolves V6: Blackwell→NVFP4 vs Hopper→FP8).
+4. Provisioning takes 1–2 min. Open **JupyterLab** (in-browser) and run the cookbook's cells — they start `vllm serve` for you with the correct flags. **Change the port in the serve cell to `8000`** if it isn't already, and keep `--host 0.0.0.0`.
+5. **Expose the port:** instance detail → **Access** tab → enter **`8000`** → **Add** → copy the generated public URL.
+6. **Give me:** `CANDLE_BASE_URL=<that public URL>/v1` (I'll drop it into `.env.local`). Also tell me the `--served-model-name` the cookbook used (likely `nemotron`).
+7. **Stop the instance** (instance → **Stop**) whenever you're not actively using it.
+
+#### ➤ Path B — blank instance (only if the Launchable is gone)
+Console → **GPUs** → **Create Instance** → pick **H100** → **Create** → open the terminal, then:
+```bash
+vllm serve --model "nvidia/NVIDIA-Nemotron-Nano-3-30B-A3B-FP8" \
+  --dtype auto --trust-remote-code --served-model-name nemotron \
+  --host 0.0.0.0 --port 8000 \
+  --enable-auto-tool-choice --tool-call-parser qwen3_coder \
+  --reasoning_parser deepseek_r1
+```
+Then **Access** tab → expose `8000` → send me the URL. (NVFP4: swap the tag to `nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4`.)
+
+> ⚠️ **Parser note (I'll verify, not you):** the official NVIDIA/vLLM blog uses `--reasoning_parser deepseek_r1` *together with* tool calling — which contradicts our earlier PLAN L21 note that `deepseek_r1` breaks tool calls. **Just use whatever the Launchable's cookbook ships.** Once your endpoint is up, I'll run a tool-calling smoke test through it; if tool calls fail, *that's* when we swap the reasoning parser. Don't worry about this — it's my problem to confirm.
+
+**Smoke test:** once it's up, from the box: `curl http://localhost:8000/v1/models` should list `nemotron`. I'll do the tool-calling test remotely once you send me `CANDLE_BASE_URL`.
+
+</details>
 
 ### 2. Dev-candle key (M1 — unblocks the engine before the GPU is up)
 The engine develops against **Claude Opus 4.8** through the same seam, then swaps to your vLLM endpoint for measured runs.
 - **`ANTHROPIC_API_KEY`** → `.env.local`. (Reuse an existing key from another project if you have one — specs.md notes you can.)
 
-### 3. Supabase project (WS-D — unblocks persistence)
-- Create (or point me at an existing) Supabase project.
-- Give me: **`NEXT_PUBLIC_SUPABASE_URL`**, **`NEXT_PUBLIC_SUPABASE_ANON_KEY`**, **`SUPABASE_SERVICE_ROLE_KEY`** → `.env.local`.
-- If you want me to run migrations directly: the DB password / connection string (else I apply via the Supabase SQL editor and you paste).
+### 3. Supabase project (WS-D — unblocks persistence) — ✅ DONE (I did this via CLI)
+- Project **Linnaeus** (ref `jdiidxgtxxbngatepcfl`, us-east-1, in your **personal** org "Cameron Hightower Personal Supabase" — free plan). Dashboard: https://supabase.com/dashboard/project/jdiidxgtxxbngatepcfl
+- URL + anon + service_role + db password are already in `.env.local`. I'll run migrations via the CLI/service key.
+- *Nothing needed from you.*
 
 ### 4. Confirm repo read access (WS-B/E/F — the probe's main target)
 - The probe runs against your **local SKMD checkout at `/Users/cameronhightower/Software_Projects/SKMD`**. Confirm I can read it (I already read its `CLAUDE.md`, so this is likely a ✅ — just confirm it's current on `main`).
