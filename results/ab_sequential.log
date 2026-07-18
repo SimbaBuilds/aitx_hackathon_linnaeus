@@ -1,0 +1,25 @@
+
+▶ Linnaeus audit — target=SKMD
+  candle: PROD (pinned Nemotron candle — MEASURED)  model=nemotron seed=42 temp=0
+  repo:   /Users/cameronhightower/Software_Projects/SKMD
+  surfaces:
+    - repo    connected
+    - gmail   unavailable
+    - drive   unavailable
+    - notion  connected
+    - rds     unavailable
+  probes: auth-boundary, designer-contribute, live-vs-legacy-pdf, onboard-client, billing-regression
+
+── findings (199.6s) ─────────────────────────────────────────
+  auth-boundary        completed        friction= 10.6  none
+  designer-contribute  completed        friction= 25.0  none
+  live-vs-legacy-pdf   completed        friction=  6.1  none
+  onboard-client       completed        friction= 43.3  no-runbook
+  billing-regression   stalled          friction= 78.0  stale-code
+
+✓ wrote /Users/cameronhightower/Software_Projects/aitx_hackathon_linnaeus/.audit-output/run_SKMD_1784413122798.json
+  (measured run — safe to persist / compare as a real delta)
+real 200.13
+user 5.62
+sys 4.23
+SEQ_EXIT=0

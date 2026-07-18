@@ -1,0 +1,22 @@
+{
+  "what": "vLLM continuous-batching + PagedAttention A/B \u2014 same H100, same Nemotron-3-Nano-30B-A3B FP8, same 5-probe battery over real SKMD",
+  "endpoint": "CANDLE_BASE_URL (self-hosted vLLM, --max-num-seqs 8)",
+  "sequential": {
+    "probes_in_flight": 1,
+    "wall_clock_s": 200.13,
+    "source": ".audit-output/ab_sequential.log"
+  },
+  "concurrent": {
+    "probes_in_flight": 5,
+    "wall_clock_s": 113.25,
+    "source": ".audit-output/ab_concurrent.log"
+  },
+  "speedup_x": 1.77,
+  "wall_clock_reduction_pct": 43.4,
+  "honesty_notes": [
+    "Throughput/concurrency win, not single-probe latency: one probe alone is not faster on vLLM.",
+    "Part of each probe's wall-clock is local tool execution (grep/read), which also parallelizes; vLLM batching is one contributor to the end-to-end speedup, not the sole cause.",
+    "Effective concurrency < 5 at times: the synthesized billing-regression probe does sequential authoring calls within itself.",
+    "Outputs equivalent across both runs (friction scores match within run-to-run timing noise) -> same work, ~1.77x faster."
+  ]
+}

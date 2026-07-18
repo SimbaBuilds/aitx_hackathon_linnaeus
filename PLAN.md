@@ -20,11 +20,11 @@ Linnaeus measures how operable an org/codebase is for an AI agent by dropping pr
 |---|---|---|
 | L1 | **Hero = the org, via a bounded change-delta** — not a whole-org audit | Verifiable because Cameron is ground truth; see `demo_org_change_delta.md` |
 | L2 | **Codebase demoted to a ~20s calibration cameo** | Proves the instrument on a legible substrate, then turn it on the org |
-| L3 | **Frame = Recursive Intelligence track** via **drift/regression delta** across runs | Track judges the run1→run2 delta; the delta is a *caught regression across a real org change*, not self-improvement; doesn't require always-on |
+| L3 | **Frame = cross-cutting bounties first; track home = Red Hat Live Data** (revised 2026-07-18, was Recursive Intelligence) | **Anchor to the bounties** (vLLM $500 / Nemotron $100-head / Antler Commercializable) — they don't need a track and are where the pivoted Linnaeus wins. **Track = Red Hat Live Data:** the always-on trigger (Gmail deploy-announcement → re-audit; cron drift-sweep) *is* "an agent powered by real-time streaming data, heartbeat earning its keep." **⚠️ Do NOT pitch Recursive Intelligence** — after the pivot our delta is a *caught regression* (friction rises) from a deliberately **memory-less** candle; that track rewards an agent that *gets smarter over time*, so it invites "your agent didn't learn anything." Keep "recursion" = drift re-detection, never self-improvement. See `talking_points.md` §Sponsor tech. |
 | L4 | **Standard candle = fixed & memory-less** → the **only variable between runs is the org itself**, so the delta is attributable to the change | The honesty guardrail; Linnaeus didn't author the change → can't be teaching-to-the-test |
 | L5 | **Single-candle architecture (revised 2026-07-18):** the pinned Nemotron candle does probing/measurement AND authors the typed remediation recommendation. **No separate frontier remediation author.** | Remediation is now *output a human decides on*, so it's a lightweight templating step off the tagged root-cause — doesn't want a frontier model. Airtight "Best Use of Nemotron": *all* intelligence is the candle. Heavyweight strategic remediation = "Linnaeus Pro" roadmap, not the build. (Supersedes old two-model split.) |
 | L6 | **Candle served on Nemotron + vLLM** (OpenAI-compatible endpoint) | Satisfies vLLM + Nemotron bounties from one endpoint |
-| L7 | **Candle tier = as large as the Brev GPU allows**: Super-120B if 4×H100, else Nano-30B-A3B (NVFP4) single-GPU | Don't downsize to chase "small-model punch"; capability > bounty adjective |
+| L7 | **Candle = Nemotron-3-Nano-30B-A3B FP8, single H100** (resolved — this is what's live) | Landed on the Nano, and per the actual vLLM bounty text that's an **asset, not a compromise**: A3B = ~3B *active* params (MoE) → the bounty's named **"small-model punch"** (outsized utility from a small open model + agent scaffolding). Frame it as a win, not an apology. (Earlier "capability > adjective" caution is moot: the Nano runs the battery fine and the small-model story now *helps*.) |
 | L8 | **Sequencing: stable first, alpha last** — get vLLM+Nemotron working standalone (the $500, zero alpha risk), *then* layer NemoClaw/OpenShell | NemoClaw/OpenShell are ~4-month-old alpha; people struggling with them |
 | L9 | **OpenShell/NemoClaw = IN** (integrated path confirmed) | NemoClaw supports "Existing vLLM" provider → candle IS the routed endpoint; ~70% shared work |
 | L10 | **Reuse Juniper's event-dispatch pattern, drop the NL gate** | Dev operator; lean trigger → probe-run → persist |
@@ -51,15 +51,15 @@ Linnaeus measures how operable an org/codebase is for an AI agent by dropping pr
 
 ## 2. Prize / scoring map
 
-**Judging (100 pts):** Technical Execution & Completeness (30) · Use of Sponsor Tech (30) · Value & Impact (20) · "Frontier" Factor (20). Philosophy: *real working systems, not slide decks or API wrappers.*
+**Judging (100 pts, verbatim rubric):** Technical Execution & Completeness (30 = 15 completes-without-crashing + 15 real-engineering-not-a-wrapper) · Use of Sponsor Tech (30 = 15 used-meaningfully + 15 **articulate the "why"**) · Value & Impact (20 = 10 non-obvious-insight + 10 usable-tomorrow) · "Frontier" Factor (20 = 10 creativity + 10 performance). Philosophy: *"judging real, working systems — not slide decks or simple API wrappers."* → **the candle must be LIVE during judging**, banked JSON is only insurance.
 
-**Targeted bounties (one integrated stack earns all three, ~70% shared work):**
-- **Best Use of vLLM — $500 cash** ← the Nemotron-on-vLLM candle endpoint, genuinely hammered under the probe/heartbeat workload
-- **Best Use of Nemotron — $100 Brev/member** ← same endpoint, ~0 extra work
-- **Best Use of NemoClaw + OpenShell — $100 Brev/member** ← install agent via NemoClaw (routed to the vLLM candle) + a real adversarial-surviving `policy.yaml`
-- **Most Commercializable (Antler) — dinner** ← the pitch
+**Targeted bounties (cross-cutting — earned from one integrated stack; these are the win, not the track):**
+- **Best Use of vLLM — $500 cash** ← *primary money target.* Bounty text maps almost verbatim: **"small-model punch"** (Nano-30B-**A3B** = ~3B active), **efficiency** (`--max-num-seqs 8`, 5-probe battery in 242s), **"real integration under a heartbeat where throughput matters"** (trigger fires repeated batteries). Qualify bar = *"functional vLLM endpoint doing real work, not a token mention"* → **live during judging.**
+- **Best Use of Nemotron — $100 Brev/member** ← same endpoint. **Requires a short written submission** (what/why/how-maximized) → drafted at `nemotron_bounty_writeup.md`. Candle is central, not a wrapper.
+- **Best Use of NemoClaw + OpenShell — $100 Brev/member** ← install agent via NemoClaw (routed to the vLLM candle) + a real adversarial-surviving `policy.yaml`. Stretch.
+- **Most Commercializable (Antler) — dinner** ← the pitch. Bounty weights *Customer↔Problem fit · immediate value · superiority vs existing.* Wedge = measurement/diagnosis of org operability for enterprises adopting agents.
 
-Solo note: per-member Brev bounties are worth less solo → the real money targets are the **$500 vLLM cash** + **Antler**.
+**Track home = Red Hat Live Data** (via the live trigger/heartbeat), NOT Recursive Intelligence (see L3). Solo note: per-member Brev bounties are worth less solo → the real money targets are the **$500 vLLM cash** + **Antler**.
 
 ---
 
@@ -153,7 +153,8 @@ Full component detail, quickstart commands, VRAM tiers, starter `policy.yaml`, a
 | `implementation_plan.md` | **Build execution** — contracts, workstreams, sequence, delegation blueprint, M1–M3 |
 | `camerons_task.md` | **Human-only tasks** — creds/keys/OAuth, serving commands, ground-truth facts |
 | `brainstorming_artifact.md` | Full thesis / system rationale |
-| `talking_points.md` | Presentation spine, framing, one-liners |
+| `talking_points.md` | Presentation spine, framing, one-liners (incl. §Sponsor tech — why vLLM/Nemotron) |
+| `nemotron_bounty_writeup.md` | **Submission-ready** written explanation required by the Nemotron bounty |
 | `specs.md` | Terse probe/scoring outline |
 | `probe_legacy_legibility.md` | Deep-dive on the Live-vs-Legacy probe |
 | `demo_org_change_delta.md` | **The hero demo** — org change-delta, built on platform-to-prod |

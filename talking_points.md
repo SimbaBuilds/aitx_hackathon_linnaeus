@@ -158,6 +158,32 @@ The floor is genuinely useful independent of the outcome: even if the event is a
 
 ---
 
+## Sponsor tech — the "why vLLM / why Nemotron" (30 rubric pts + two bounties)
+
+*30 of the 100 judging points are "Use of Sponsor Technology" — 15 for using it meaningfully, 15 for articulating **why** it was the right choice. This is also where the $500 vLLM cash and $100/head Nemotron bounties live. Say these out loud; don't make the judges infer them.*
+
+**The load-bearing "why," in one sentence:**
+> **Linnaeus is a measurement instrument, and an instrument has to be calibrated and stable. A hosted frontier API is an *uncalibrated* instrument — it drifts silently when the provider updates the model. Self-hosting the candle on vLLM *pins* it: exact weights, exact quant (FP8), `seed=42`, `temp=0`. That reproducibility is what makes "the only thing that changed between run 1 and run 2 is the org" a true statement instead of a hope.**
+
+That's the strongest "why this sponsor tech" story available — for us vLLM isn't a cost optimization, it's a **correctness requirement** for the standard-candle thesis (the whole delta collapses if the instrument can drift).
+
+**The vLLM bounty rewards three things by name — we hit all three:**
+- **"The small-model punch"** — *"outsized utility from a small open model + agent scaffolding rather than brute-forcing with the biggest thing that fits."* Nemotron-3-Nano-**30B-A3B** is a mixture-of-experts with **~3B active parameters** — a genuinely small model. Our probe engine + friction instrumentation is the scaffolding that pulls a real regression signal out of it. *"A 3B-active open model, self-hosted, doing genuine agentic tool-use to measure org operability — small-model punch, not brute force."*
+- **"Efficiency"** — continuous/in-flight batching, PagedAttention, concurrent requests. Receipt: `--max-num-seqs 8`, the full 5-probe battery batched concurrently in **242 s** on one H100.
+- **"Real integration under a heartbeat, where concurrent/repeated inference makes throughput matter"** — their exact words. The trigger fires re-audits on a heartbeat → repeated batteries → throughput is load-bearing, not incidental.
+
+**Why Nemotron specifically** (bounty requires a short written explanation — see `nemotron_bounty_writeup.md`):
+- **Central, not a wrapper.** The candle *is* the instrument; every finding is a Nemotron tool-use trace. Remove Nemotron and there is no measurement.
+- **Agentic tool-use is the whole job**, and Nemotron is built for it — `--tool-call-parser qwen3_coder --reasoning-parser nano_v3`, verified end-to-end. A plain completion model couldn't run the probes.
+- **Output quality via evaluation, not vibes** — the two-layer testability gate + friction instrumentation *is* an evaluation/feedback loop around the model's output. The banked delta (16.8→70.5) is Nemotron-measured and reproducible.
+
+**Track fit — say this cleanly (it's changed):**
+- **We anchor to the cross-cutting bounties** (vLLM $500, Nemotron $100/head, Most Commercializable / Antler), which don't require a track and are where the pivoted Linnaeus genuinely wins.
+- **Track home = Red Hat Live Data.** The always-on trigger (Gmail deploy-announcement → fire a re-audit; cron drift-sweep) *is* "an agent powered by real-time streaming data where the heartbeat earns its keep." Live source doing real work in the loop.
+- **Do NOT pitch this as Recursive Intelligence.** That track rewards an agent that *gets smarter over time*; our delta is a *caught regression* (friction rises) produced by a deliberately **memory-less, fixed** candle — the opposite of self-improvement, and on purpose (it's what makes the delta un-gameable). Framing it there invites the judge to say "your agent didn't learn anything." Keep "recursion" = **drift re-detection**, never self-improvement.
+
+---
+
 ## Lines to have loaded
 
 - "The friction log *is* the audit."
@@ -175,3 +201,6 @@ The floor is genuinely useful independent of the outcome: even if the event is a
 - "The stall authors the interview question — the audit produces its own recommendation, and hands you the decision."
 - "You don't let a code change merge if it breaks the tests. Linnaeus catches the org change that breaks your operability."
 - "The delta isn't Linnaeus getting smarter — it's your org getting less operable, and Linnaeus being the only thing that noticed."
+- "vLLM isn't a cost optimization here — it's how we keep the instrument calibrated. A hosted API that drifts under you can't be a standard candle."
+- "Three billion active parameters, self-hosted, measuring a real regression. Small-model punch, not brute force."
+- "Remove Nemotron and there's no measurement — every finding is a Nemotron tool-use trace."

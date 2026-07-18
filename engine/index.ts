@@ -137,6 +137,17 @@ export async function runBattery(
   probeIds: string[] = BATTERY_IDS,
   opts: RunProbeOptions = {},
 ): Promise<Finding[]> {
+  // Concurrent battery (LINNAEUS_BATTERY_CONCURRENT=1): fire all probes at once so
+  // multiple sequences are genuinely in-flight → vLLM's continuous batching + PagedAttention
+  // do real work. Each probe owns its own FrictionRecorder (created inside runProbe), so
+  // parallelizing across probes is state-safe; the tool loop *within* a probe stays sequential.
+  // NOTE: under concurrency, per-probe `seconds_to_first_correct_move` inflates from GPU
+  // contention, so friction *scores* differ from the sequential baseline — use the concurrent
+  // path for WALL-CLOCK/throughput measurement, not for the scored demo board.
+  if (process.env.LINNAEUS_BATTERY_CONCURRENT === "1") {
+    return Promise.all(probeIds.map((id) => runProbe(id, target, tools, candle, opts)));
+  }
+
   const findings: Finding[] = [];
   for (const id of probeIds) {
     findings.push(await runProbe(id, target, tools, candle, opts));
