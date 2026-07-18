@@ -1,0 +1,31 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest", "--browser", "chromium", "--user-data-dir", "/tmp/playwright-browser-1"]
+    },
+    "playwright-2": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest", "--browser", "chromium", "--user-data-dir", "/tmp/playwright-browser-2"]
+    },
+    "playwright-3": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest", "--browser", "chromium", "--user-data-dir", "/tmp/playwright-browser-3"]
+    },
+    "playwright-4": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest", "--browser", "chromium", "--user-data-dir", "/tmp/playwright-browser-4"]
+    },
+    "playwright-5": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest", "--browser", "chromium", "--user-data-dir", "/tmp/playwright-browser-5"]
+    },
+    "cloudflare-playwright": {
+      "type": "sse",
+      "url": "https://playwright-mcp-example.cameron-hightower.workers.dev/sse",
+      "headers": {
+        "Authorization": "Bearer 4KOhushTIK85WdH0i/c+LmniXm9iM0484xvWUQe2KGE="
+      }
+    }
+  }
+}
