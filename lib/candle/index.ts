@@ -73,7 +73,8 @@ export function createCandle(cfg: CandleConfig = {}): CandleClient {
       }
     : {
         baseURL: "https://api.anthropic.com/v1/",
-        model: cfg.model ?? "claude-opus-4-8",
+        // env-overridable in case the OpenAI-compat layer wants a versioned id
+        model: cfg.model ?? process.env.DEV_CANDLE_MODEL ?? "claude-opus-4-8",
         apiKey: cfg.apiKey ?? process.env.ANTHROPIC_API_KEY ?? "",
         quant: null,
       };

@@ -48,3 +48,6 @@ supabase/.temp
 
 # agent worktrees (isolation: worktree) — never track
 .claude/worktrees/
+
+# real-run artifacts
+.audit-output/
