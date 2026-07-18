@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Linnaeus — vLLM continuous batching A/B</title>
+<style>
+  :root{
+    --bg:#0e141b;
+    --bg2:#111a23;
+    --ink:#e8eef4;
+    --muted:#8fa3b5;
+    --faint:#64788a;
+    --line:#22303c;
+    --seq:#3c5060;      /* muted: sequential */
+    --seq2:#4a616f;
+    --win:#4ade80;      /* accent: batched winner */
+    --win2:#22c55e;
+    --grid:#1a2530;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:
+      radial-gradient(1200px 700px at 78% -10%, #14202b 0%, rgba(20,32,43,0) 60%),
+      linear-gradient(180deg,var(--bg) 0%, var(--bg2) 100%);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:100vh;
+    padding:3.2vmin;
+  }
+  .slide{
+    width:100%;
+    max-width:1180px;
+    aspect-ratio:16/9;
+    background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0));
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:5.2% 6% 4.4%;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+    box-shadow:0 30px 80px rgba(0,0,0,0.45);
+  }
+  /* wordmark */
+  .brand{
+    position:absolute;
+    top:4.4%;
+    right:6%;
+    display:flex;
+    align-items:center;
+    gap:9px;
+    color:var(--faint);
+    font-size:clamp(11px,1.35vw,15px);
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    font-weight:600;
+  }
+  .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--win);box-shadow:0 0 12px rgba(74,222,128,.6)}
+
+  .eyebrow{
+    color:var(--faint);
+    font-size:clamp(11px,1.25vw,14px);
+    letter-spacing:.26em;
+    text-transform:uppercase;
+    font-weight:600;
+    margin-bottom:1.4%;
+  }
+  h1{
+    font-size:clamp(22px,3.35vw,42px);
+    line-height:1.08;
+    font-weight:700;
+    letter-spacing:-0.015em;
+    max-width:88%;
+  }
+  h1 .accent{color:var(--win)}
+
+  .chart{
+    margin-top:auto;
+    margin-bottom:auto;
+    padding:2.2% 0 0.6%;
+  }
+  .row{
+    display:grid;
+    grid-template-columns:clamp(150px,17vw,220px) 1fr;
+    align-items:center;
+    gap:clamp(14px,1.8vw,26px);
+    margin:2.1% 0;
+  }
+  .label{
+    text-align:right;
+    color:var(--muted);
+    font-size:clamp(13px,1.5vw,19px);
+    font-weight:600;
+    line-height:1.25;
+  }
+  .label small{display:block;color:var(--faint);font-weight:500;font-size:.78em;margin-top:2px}
+
+  .track{position:relative;width:100%}
+  .bar{
+    height:clamp(34px,5.6vw,58px);
+    border-radius:9px;
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    padding:0 clamp(12px,1.3vw,20px);
+    position:relative;
+    color:#fff;
+    font-variant-numeric:tabular-nums;
+    font-weight:700;
+    font-size:clamp(15px,1.9vw,26px);
+    letter-spacing:-0.01em;
+  }
+  .bar.seq{
+    width:100%;
+    background:linear-gradient(90deg,var(--seq),var(--seq2));
+    color:#c6d3de;
+    border:1px solid #48606f;
+  }
+  /* 113.3 / 200.1 = 0.56622 -> honest proportional width */
+  .bar.win{
+    width:56.62%;
+    background:linear-gradient(90deg,var(--win2),var(--win));
+    color:#08130b;
+    box-shadow:0 0 0 1px rgba(74,222,128,.35), 0 10px 30px rgba(34,197,94,.22);
+  }
+
+  /* gap annotation between the two bar ends */
+  .gap{
+    position:absolute;
+    top:50%;
+    /* spans from the end of the winning bar to the end of the sequential bar */
+    left:56.62%;
+    right:0;
+    transform:translateY(-50%);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    pointer-events:none;
+  }
+  .gap .bracket{
+    width:100%;
+    height:0;
+    border-top:2px dashed rgba(143,163,181,.45);
+  }
+  .gap .tag{
+    position:absolute;
+    background:rgba(14,20,27,.9);
+    border:1px solid var(--line);
+    color:var(--win);
+    font-weight:700;
+    font-size:clamp(12px,1.45vw,20px);
+    padding:4px 12px;
+    border-radius:999px;
+    white-space:nowrap;
+    letter-spacing:.01em;
+  }
+
+  .throughput{
+    display:inline-flex;
+    align-items:baseline;
+    gap:10px;
+    margin-top:1.2%;
+    margin-left:calc(clamp(150px,17vw,220px) + clamp(14px,1.8vw,26px));
+  }
+  .throughput b{
+    color:var(--win);
+    font-size:clamp(16px,2vw,28px);
+    font-weight:800;
+    letter-spacing:-0.01em;
+  }
+  .throughput span{color:var(--muted);font-size:clamp(12px,1.4vw,18px);font-weight:600}
+
+  .subcap{
+    color:var(--muted);
+    font-size:clamp(12px,1.45vw,18px);
+    line-height:1.5;
+    max-width:96%;
+    margin-top:2.6%;
+    padding-top:2.2%;
+    border-top:1px solid var(--grid);
+  }
+  .subcap b{color:var(--ink);font-weight:650}
+
+  .foot{
+    color:var(--faint);
+    font-size:clamp(10px,1.1vw,13px);
+    line-height:1.45;
+    margin-top:1.6%;
+    font-style:italic;
+    max-width:92%;
+  }
+
+  @media (max-aspect-ratio:16/9){
+    .slide{height:auto;}
+  }
+</style>
+</head>
+<body>
+  <div class="slide">
+    <div class="brand"><span class="dot"></span>Linnaeus</div>
+
+    <div class="eyebrow">Agent Operability Audit · Sponsor-tech appendix · vLLM A/B</div>
+    <h1>vLLM: the candle runs concurrently — <span class="accent">1.77&times; on one H100</span></h1>
+
+    <div class="chart">
+      <div class="row">
+        <div class="label">Sequential<small>1 probe in flight</small></div>
+        <div class="track">
+          <div class="bar seq">200.1&nbsp;s</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="label">Batched<small>5 in flight · <code>--max-num-seqs 8</code></small></div>
+        <div class="track">
+          <div class="bar win">113.3&nbsp;s</div>
+          <div class="gap">
+            <div class="bracket"></div>
+            <div class="tag">&minus;43% wall-clock</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="throughput">
+        <b>1.77&times; throughput</b>
+        <span>continuous batching + PagedAttention, equivalent outputs</span>
+      </div>
+    </div>
+
+    <div class="subcap">
+      Same H100 &middot; <b>Nemotron-3-Nano-30B-A3B FP8</b> &middot; same 5-probe battery &middot; equivalent outputs.
+      PagedAttention fits the concurrent KV cache; continuous batching keeps the GPU saturated.
+    </div>
+
+    <div class="foot">
+      Throughput/concurrency win, not single-probe latency. Part of each probe's wall-clock is local tool execution, which also parallelizes.
+    </div>
+  </div>
+</body>
+</html>
