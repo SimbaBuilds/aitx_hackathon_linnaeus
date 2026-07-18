@@ -1,6 +1,6 @@
 {
   "_note": "Fixture sample conforming to Contract A (lib/contracts.ts). WS-C builds the 3 views against this; WS-D round-trips it through Supabase. friction scores in _derived are frictionScore(friction_vector) from lib/instrumentation.ts \u2014 recompute, do not hardcode in UI.",
-  "target": "SKMD",
+  "target": "Telehealth Monorepo",
   "surfaces": [
     {
       "id": "sf_repo",
@@ -33,7 +33,7 @@
       "id": "billing-regression",
       "category": "billing-regression",
       "kind": "synthesized",
-      "instance_spec": "Compute this month's client invoices from usage. Run against pre-change scope (docuspa clients) then post-change scope (incl. nxtyou D2C clients)."
+      "instance_spec": "Compute this month's client invoices from usage. Run against pre-change scope (existing medspa clients) then post-change scope (incl. the new D2C clients)."
     },
     {
       "id": "auth-boundary",
@@ -63,7 +63,7 @@
   "runs": [
     {
       "id": "run_before",
-      "target": "SKMD",
+      "target": "Telehealth Monorepo",
       "candle": {
         "model": "nemotron",
         "quant": "FP8",
@@ -76,7 +76,7 @@
     },
     {
       "id": "run_after",
-      "target": "SKMD",
+      "target": "Telehealth Monorepo",
       "candle": {
         "model": "nemotron",
         "quant": "FP8",
@@ -127,8 +127,8 @@
       "root_cause_tag": "stale-code",
       "remediation": {
         "type": "Fix",
-        "content": "Update the monthly invoice script to price nxtyou D2C patient billing \u2014 it currently only handles medspa/docuspa clients.",
-        "target": "skmd_fastapi/scripts/billing/generate_skmd_monthly_invoice.py",
+        "content": "Update the monthly invoice script to price the new D2C patient billing \u2014 it currently only handles the existing medspa clients.",
+        "target": "telehealth_api/scripts/billing/generate_monthly_invoice.py",
         "provenance": "candle-inferred (confirmed by owner: D2C billing not yet implemented)"
       },
       "_derived": {
@@ -227,7 +227,7 @@
       "before_run_id": "run_before",
       "after_run_id": "run_after",
       "friction_delta": 53.7,
-      "_note": "REAL Nemotron-measured: completed(16.8) -> stalled(70.5) = the caught regression nxtyou introduced. THE money shot."
+      "_note": "REAL Nemotron-measured: completed(16.8) -> stalled(70.5) = the caught regression the D2C launch introduced. THE money shot."
     }
   ]
 }

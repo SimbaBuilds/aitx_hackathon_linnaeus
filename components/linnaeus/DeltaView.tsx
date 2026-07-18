@@ -83,7 +83,7 @@ export function DeltaView() {
         <h2 className="text-lg font-semibold tracking-tight">The delta</h2>
         <p className="mt-0.5 max-w-2xl text-sm text-muted-foreground">
           Same probe — <span className="font-mono text-foreground">{probeLabel(billingAfter.probe_id)}</span> —
-          run before and after an org change (nxtyou&rsquo;s D2C clients). It used to complete;
+          run before and after an org change (the new D2C clients). It used to complete;
           now it stalls. That swing is a regression the audit caught.
         </p>
       </div>
