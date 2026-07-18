@@ -131,12 +131,51 @@ const billingRegression: ProbeDefinition = {
   completedTag: "none",
 };
 
+// ── Billing coverage (demo probe for the before/after regression) ─────────────
+// Code-coverage framing: repo-only answerable. The candle traces the invoice
+// script and ends with a STRUCTURED verdict ("COVERAGE: COMPLETE" | "COVERAGE:
+// GAP - …") that drives success — so the model's honest read of the code decides,
+// not keyword-guessing. Run twice with scoped instances (medspa vs. +D2C): the
+// medspa scope has a code path → COMPLETE; the D2C scope has none → GAP → stall.
+const billingCoverage: ProbeDefinition = {
+  id: "billing-coverage",
+  category: "billing-regression",
+  kind: "universal", // instance is supplied explicitly per run (no authoring)
+  instanceSpec: null,
+  systemPrompt:
+    "You audit whether the monthly invoice-generation code contains a PRICING " +
+    "PATH for each client type in a requested scope. Use the repo tools to search " +
+    "and read the billing/invoice code. A client type is COVERED only if you find " +
+    "the specific code that computes its invoice — grep for it; do not assume. You " +
+    "do NOT need to verify every edge case, only whether a pricing code path " +
+    "EXISTS for each requested client type. Be efficient (a few targeted searches/" +
+    "reads). Finish your final message with EXACTLY one line: 'COVERAGE: COMPLETE' " +
+    "if every client type in the requested scope has a pricing code path, or " +
+    "'COVERAGE: GAP - <client type(s) with no pricing code path>' otherwise.",
+  userPrompt: (spec) =>
+    spec ?? "Does a pricing code path exist for every client in the current book of business?",
+  reachedCheckpoint: (ctx) =>
+    okMatch(ctx, /invoice|billing|pricing|generate_skmd_monthly_invoice/),
+  didProbeSucceed: (ctx) => {
+    const text = ctx.messages
+      .filter((m) => m.role === "assistant")
+      .map((m) => m.content ?? "")
+      .join("\n");
+    const complete = /COVERAGE:\s*COMPLETE/i.test(text);
+    const gap = /COVERAGE:\s*GAP/i.test(text);
+    return complete && !gap; // full coverage only; any reported gap = a stall
+  },
+  failureTag: "stale-code", // an uncovered scope = the billing code is stale for it
+  completedTag: "none",
+};
+
 export const PROBE_REGISTRY: Record<string, ProbeDefinition> = {
   [authBoundary.id]: authBoundary,
   [designerContribute.id]: designerContribute,
   [liveVsLegacyPdf.id]: liveVsLegacyPdf,
   [onboardClient.id]: onboardClient,
   [billingRegression.id]: billingRegression,
+  [billingCoverage.id]: billingCoverage,
 };
 
 /** The default hackathon battery order (4 universal + 1 synthesized). */

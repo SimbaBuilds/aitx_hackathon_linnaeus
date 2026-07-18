@@ -27,13 +27,28 @@ export function parseArgs(raw: string): Record<string, unknown> {
   }
 }
 
+/**
+ * Max characters of a single tool result threaded back to the candle. Large
+ * file reads / grep dumps otherwise blow the context window over a 20-step loop
+ * (observed: SKMD billing files → 66k tokens > 64k limit). ~8k chars ≈ ~2k
+ * tokens; capped × maxSteps stays well under the window. Truncation itself is a
+ * mild friction signal (the agent must re-query more narrowly).
+ */
+const MAX_TOOL_RESULT_CHARS = 8000;
+
 /** Build the role:"tool" turn that threads a surface result back to the candle. */
 export function toolResultMessage(tc: ToolCall, result: SurfaceToolResult): ChatMessage {
+  let content = JSON.stringify(result);
+  if (content.length > MAX_TOOL_RESULT_CHARS) {
+    content =
+      content.slice(0, MAX_TOOL_RESULT_CHARS) +
+      `…[truncated ${content.length - MAX_TOOL_RESULT_CHARS} chars — re-query more narrowly]`;
+  }
   return {
     role: "tool",
     tool_call_id: tc.id,
     name: tc.name,
-    content: JSON.stringify(result),
+    content,
   };
 }
 

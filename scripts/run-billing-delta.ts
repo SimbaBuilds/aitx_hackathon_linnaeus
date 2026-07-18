@@ -44,16 +44,14 @@ function loadEnvLocal(): void {
 const BILLING_SCRIPT = "skmd_fastapi/scripts/billing/generate_skmd_monthly_invoice.py";
 
 const BEFORE_SPEC =
-  "Compute this month's client invoices for the medspa / docuspa clients — the " +
-  "clinics billed monthly via the existing monthly-invoice pipeline. Locate the " +
-  "invoice-generation script, determine how each medspa client is priced, and " +
-  "produce the per-client invoice computation for that scope.";
+  "Scope = one client type: medspa / docuspa clinic clients (the clinics billed " +
+  "by the monthly-invoice pipeline). Does a pricing code path exist for this " +
+  "client type?";
 
 const AFTER_SPEC =
-  "Compute this month's client invoices for ALL clients, including nxtyou " +
-  "direct-to-consumer (D2C) patients now in production. Locate the invoice-" +
-  "generation script and produce the per-client invoice computation covering " +
-  "both the medspa clinics AND the nxtyou D2C patient billing.";
+  "Scope = two client types: (1) medspa / docuspa clinic clients AND (2) nxtyou " +
+  "direct-to-consumer (D2C) patients now in production. Does a pricing code path " +
+  "exist for EACH of these client types?";
 
 const supabaseConfigured = (): boolean =>
   !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -80,14 +78,14 @@ async function main(): Promise<void> {
   console.log(`  surfaces: ${surfaceStatus().map((s) => `${s.kind}:${s.access_status}`).join("  ")}\n`);
 
   console.log("  running BEFORE (medspa/docuspa scope)…");
-  const before: Finding = await runProbe("billing-regression", target, tools, candle, {
+  const before: Finding = await runProbe("billing-coverage", target, tools, candle, {
     runId: beforeRunId,
     instanceSpec: BEFORE_SPEC,
   });
   console.log(`    → ${before.status}  friction=${frictionScore(before.friction_vector).toFixed(1)}  ${before.root_cause_tag}`);
 
   console.log("  running AFTER (all clients incl. nxtyou D2C)…");
-  const after: Finding = await runProbe("billing-regression", target, tools, candle, {
+  const after: Finding = await runProbe("billing-coverage", target, tools, candle, {
     runId: afterRunId,
     instanceSpec: AFTER_SPEC,
   });
@@ -116,9 +114,9 @@ async function main(): Promise<void> {
   if (supabaseConfigured()) {
     try {
       const probe: Probe = {
-        id: "billing-regression",
+        id: "billing-coverage", // must match the findings' probe_id (FK)
         category: "billing-regression",
-        kind: "synthesized",
+        kind: "universal",
         instance_spec: AFTER_SPEC,
       };
       const mkRun = (id: string, org_state: "before" | "after"): Run => ({
@@ -129,7 +127,7 @@ async function main(): Promise<void> {
       await insertRun(mkRun(afterRunId, "after"));
       await insertFinding(before);
       await insertFinding(after);
-      const persisted = await getProbeDelta("billing-regression", beforeRunId, afterRunId);
+      const persisted = await getProbeDelta("billing-coverage", beforeRunId, afterRunId);
       console.log(`\n  ✓ persisted to Supabase; round-trip delta = ${persisted.friction_delta >= 0 ? "+" : ""}${persisted.friction_delta.toFixed(1)}`);
     } catch (e) {
       console.log(`\n  ⚠️  persistence skipped: ${(e as Error).message}`);
