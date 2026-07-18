@@ -28,6 +28,8 @@ We are not asking whether backwards compat *exists*. We are asking whether the c
 
 The core thesis holds that a codebase has almost no negative space "by construction — if it did, it wouldn't run." Legacy-but-still-wired code is the exception that proves it: a deprecated path that nothing on record explains is literally undocumented glue resident in a human's head. The absence of a documented reason *is* the finding — the same shape as the org-side headline, found on the side you can verify.
 
+**Canonical calibration instance (SKMD): the prescription-PDF orphan.** In Cameron's codebase, prescription PDFs are generated/exist but **not wired up** — orphaned legacy (why-nowhere: nobody decided to keep it, it just wasn't pruned). A candle asked to work near that path can't tell if it's live or dead. This is the concrete instance for the demo's ~20-second **codebase calibration cameo**: the probe stalls classifying it, root-cause = *"no deprecation marker, no removal condition, no coexisting live caller,"* remediation = **Delete** (or Document, if there turns out to be a real future-use reason). Cameron is ground truth, so correctness is free.
+
 ## Why LLM-generated codebases make this the critical probe
 
 The mechanism that generates the legacy is the same limit the probe measures.
