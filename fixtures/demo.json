@@ -1,0 +1,101 @@
+{
+  "_note": "Fixture sample conforming to Contract A (lib/contracts.ts). WS-C builds the 3 views against this; WS-D round-trips it through Supabase. friction scores in _derived are frictionScore(friction_vector) from lib/instrumentation.ts — recompute, do not hardcode in UI.",
+  "target": "SKMD",
+  "surfaces": [
+    { "id": "sf_repo", "kind": "repo", "access_status": "connected" },
+    { "id": "sf_gmail", "kind": "gmail", "access_status": "connected" },
+    { "id": "sf_drive", "kind": "drive", "access_status": "connected" },
+    { "id": "sf_notion", "kind": "notion", "access_status": "connected" },
+    { "id": "sf_rds", "kind": "rds", "access_status": "connected" }
+  ],
+  "probes": [
+    { "id": "billing-regression", "category": "billing-regression", "kind": "synthesized", "instance_spec": "Compute this month's client invoices from usage. Run against pre-change scope (docuspa clients) then post-change scope (incl. nxtyou D2C clients)." },
+    { "id": "auth-boundary", "category": "auth-boundary", "kind": "universal", "instance_spec": null },
+    { "id": "designer-contribute", "category": "can-a-designer-contribute", "kind": "universal", "instance_spec": null },
+    { "id": "live-vs-legacy-pdf", "category": "live-vs-legacy", "kind": "universal", "instance_spec": null },
+    { "id": "onboard-client", "category": "onboard-a-client", "kind": "universal", "instance_spec": null }
+  ],
+  "runs": [
+    {
+      "id": "run_before",
+      "target": "SKMD",
+      "candle": { "model": "nemotron-candle", "quant": "FP8", "seed": 42, "temp": 0 },
+      "org_state": "before",
+      "mode": "passive",
+      "started_at": "2026-07-18T15:00:00.000Z"
+    },
+    {
+      "id": "run_after",
+      "target": "SKMD",
+      "candle": { "model": "nemotron-candle", "quant": "FP8", "seed": 42, "temp": 0 },
+      "org_state": "after",
+      "mode": "passive",
+      "started_at": "2026-07-18T18:30:00.000Z"
+    }
+  ],
+  "findings": [
+    {
+      "run_id": "run_before",
+      "probe_id": "billing-regression",
+      "status": "completed",
+      "friction_vector": { "completed": true, "seconds_to_first_correct_move": 45, "surfaces_opened": 2, "tool_calls": 6, "retries": 0, "dead_ends": 0, "guessed": false, "hedging_count": 0 },
+      "root_cause_tag": "none",
+      "remediation": null,
+      "_derived": { "friction_score": 13.5 }
+    },
+    {
+      "run_id": "run_after",
+      "probe_id": "billing-regression",
+      "status": "stalled",
+      "friction_vector": { "completed": false, "seconds_to_first_correct_move": null, "surfaces_opened": 5, "tool_calls": 11, "retries": 2, "dead_ends": 3, "guessed": true, "hedging_count": 4 },
+      "root_cause_tag": "stale-code",
+      "remediation": { "type": "Fix", "content": "Update the monthly billing script to price nxtyou's D2C path (clearance_type='peptide' / D2C client class) — it currently only handles docuspa medspa clients.", "target": "skmd_fastapi/scripts/monthly_billing.py", "provenance": "candle-inferred" },
+      "_derived": { "friction_score": 89.5 }
+    },
+    {
+      "run_id": "run_after",
+      "probe_id": "auth-boundary",
+      "status": "completed",
+      "friction_vector": { "completed": true, "seconds_to_first_correct_move": 20, "surfaces_opened": 1, "tool_calls": 4, "retries": 0, "dead_ends": 0, "guessed": false, "hedging_count": 0 },
+      "root_cause_tag": "none",
+      "remediation": null,
+      "_derived": { "friction_score": 7.67 }
+    },
+    {
+      "run_id": "run_after",
+      "probe_id": "designer-contribute",
+      "status": "stalled",
+      "friction_vector": { "completed": false, "seconds_to_first_correct_move": null, "surfaces_opened": 3, "tool_calls": 7, "retries": 1, "dead_ends": 2, "guessed": true, "hedging_count": 3 },
+      "root_cause_tag": "missing-doc",
+      "remediation": { "type": "Document", "content": "Add component conventions + design-token reference to docuspa_njs/CLAUDE.md so a designer-scoped change lands without tribal knowledge.", "target": "docuspa_njs/CLAUDE.md", "provenance": "candle-inferred" },
+      "_derived": { "friction_score": 80.5 }
+    },
+    {
+      "run_id": "run_after",
+      "probe_id": "live-vs-legacy-pdf",
+      "status": "stalled",
+      "friction_vector": { "completed": false, "seconds_to_first_correct_move": null, "surfaces_opened": 2, "tool_calls": 5, "retries": 0, "dead_ends": 1, "guessed": true, "hedging_count": 2 },
+      "root_cause_tag": "dead-code",
+      "remediation": { "type": "Delete", "content": "The prescription-PDF generation path is orphaned (generated, never wired up). Remove it, or mark deprecated with a removal condition if there's a real future use.", "target": "skmd_fastapi/services/prescription_pdf.py", "provenance": "candle-inferred" },
+      "_derived": { "friction_score": 76.0 }
+    },
+    {
+      "run_id": "run_after",
+      "probe_id": "onboard-client",
+      "status": "completed",
+      "friction_vector": { "completed": true, "seconds_to_first_correct_move": 60, "surfaces_opened": 3, "tool_calls": 9, "retries": 1, "dead_ends": 1, "guessed": false, "hedging_count": 1 },
+      "root_cause_tag": "no-runbook",
+      "remediation": null,
+      "_derived": { "friction_score": 24.0 }
+    }
+  ],
+  "deltas": [
+    {
+      "probe_id": "billing-regression",
+      "before_run_id": "run_before",
+      "after_run_id": "run_after",
+      "friction_delta": 76.0,
+      "_note": "completed(13.5) -> stalled(89.5) = the caught regression nxtyou introduced. THE money shot."
+    }
+  ]
+}

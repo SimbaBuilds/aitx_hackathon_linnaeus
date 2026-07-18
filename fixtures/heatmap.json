@@ -1,0 +1,12 @@
+{
+  "_note": "Codebase pre-scan heatmap sample (WS-F produces this shape; WS-C renders it). Each cell = a module with cheap static metrics (predictors, never summed into the headline) + whether a probe stalled there (observation confirming the prediction). heat 0..1.",
+  "target": "SKMD",
+  "cells": [
+    { "path": "skmd_fastapi/scripts/monthly_billing.py", "loc": 340, "cyclomatic": 28, "coupling": 12, "dry_violations": 5, "heat": 0.92, "probe_stalled": "billing-regression", "root_cause_tag": "stale-code" },
+    { "path": "skmd_fastapi/services/prescription_pdf.py", "loc": 210, "cyclomatic": 9, "coupling": 1, "dry_violations": 1, "heat": 0.61, "probe_stalled": "live-vs-legacy-pdf", "root_cause_tag": "dead-code" },
+    { "path": "docuspa_njs/components", "loc": 4200, "cyclomatic": 14, "coupling": 22, "dry_violations": 18, "heat": 0.55, "probe_stalled": "designer-contribute", "root_cause_tag": "missing-doc" },
+    { "path": "skmd_fastapi/auth", "loc": 520, "cyclomatic": 11, "coupling": 8, "dry_violations": 2, "heat": 0.18, "probe_stalled": null, "root_cause_tag": "none" },
+    { "path": "nxtyou_njs/app", "loc": 3100, "cyclomatic": 16, "coupling": 19, "dry_violations": 9, "heat": 0.41, "probe_stalled": null, "root_cause_tag": "none" },
+    { "path": "skmd_fastapi/scheduling", "loc": 680, "cyclomatic": 21, "coupling": 15, "dry_violations": 7, "heat": 0.47, "probe_stalled": null, "root_cause_tag": "none" }
+  ]
+}
