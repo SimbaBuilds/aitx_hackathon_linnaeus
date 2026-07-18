@@ -20,6 +20,12 @@ export interface RunProbeOptions {
   runId?: string;
   /** Loop bound (default 20, per spec). */
   maxSteps?: number;
+  /**
+   * Explicit instance override: skip the authoring/testability gate and run this
+   * exact instance. Used for controlled before/after runs (e.g. the billing
+   * regression scoped two ways) where the instance is fixed, not authored.
+   */
+  instanceSpec?: string;
 }
 
 function makeRunId(target: string, probeId: string): string {
@@ -66,7 +72,10 @@ export async function runProbe(
 
   // ── Layer 1: testability gate (synthesized probes only) ──────────────────
   let instanceSpec = probe.instanceSpec;
-  if (probe.kind === "synthesized") {
+  if (opts.instanceSpec !== undefined) {
+    // Explicit instance override → skip authoring (controlled before/after runs).
+    instanceSpec = opts.instanceSpec;
+  } else if (probe.kind === "synthesized") {
     const authored = await authorInstance(probe, target, tools, candle);
     if (!authored.ok) {
       // Too illegible to even load the instrument → maximal finding, no loop.

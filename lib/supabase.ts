@@ -1,16 +1,18 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-// Reads config from env; does NOT require real values to boot (falls back to
-// empty strings so `next build` and dev can run before secrets are filled in).
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+// Config is read LAZILY (inside the factories), not at module load — so a script
+// that populates process.env (e.g. a .env.local loader) before calling these
+// still works. Falls back to empty strings so `next build`/dev boot without
+// secrets.
 
 /**
  * Browser/anon client — safe for client components. Uses the public anon key.
  */
 export function createBrowserClient(): SupabaseClient {
-  return createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
+  );
 }
 
 /**
@@ -18,7 +20,9 @@ export function createBrowserClient(): SupabaseClient {
  * components — the service-role key bypasses RLS.
  */
 export function createServiceClient(): SupabaseClient {
-  return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
+    { auth: { persistSession: false, autoRefreshToken: false } },
+  );
 }
