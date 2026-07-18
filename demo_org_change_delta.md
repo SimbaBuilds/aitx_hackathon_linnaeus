@@ -79,8 +79,17 @@ Remediation is **output, not a loop.** Linnaeus doesn't fix the org to manufactu
 The recommendation is a **decision handed to the operator**, especially at the org level where what-to-grant / what-guardrail / when-a-human-is-in-the-loop is genuinely the human's call. Linnaeus prices the friction; it doesn't mandate the cleanup. *(Heavyweight strategic remediation-planning is the commercial roadmap — "Linnaeus Pro" — not the hackathon build.)*
 
 ### The trigger (the heartbeat)
-- **Event:** platform-to-prod (or any org change — new vendor, process change, deploy).
-- **Mechanism:** the Juniper event-dispatch pattern (trigger → dispatch → probe-run → persist), minus the NL gate. For the demo this can be a manual "a change just landed, run the gate" if the automated trigger isn't wired by Sunday — *narrate* the heartbeat, show the delta.
+
+The heartbeat is an **always-on classifier watching the org's event surfaces** (Gmail, GitHub, CRM, Slack) asking one question — *"is this an operability-relevant change?"* — and dispatching a re-audit when the answer is yes. That's a real always-on agent doing real classification, not a cron wrapper; it's the honest form of the Claw-agent requirement.
+
+**Triggers split into two classes — they catch different regressions:**
+
+- **Event-triggered — a discrete org change (the classifier fires):** a new platform/feature launched (nxtyou — the demo), a new client onboarded, a new vendor/integration, a deploy, a process change, and — the thesis-lead — **onboarding/offboarding a person.** A departure is the *purest* operability regression event there is: the moment the load-bearing human leaves, the negative space they were silently filling becomes a live wall, all at once. "Linnaeus tells you exactly which workflows just became unowned" is the bus-factor made mechanical, and it's the literal enactment of *"humans were the completion layer."*
+- **Scheduled — cron drift sweep:** decay no single event caused — a stale runbook, a doc that no longer matches reality, a rotted dependency. Cron catches *decay*; event-triggers catch *change*. Naming both answers the obvious judge question: "what if the regression isn't tied to a clean event?"
+
+**Mechanism:** the Juniper event-dispatch pattern (trigger → dispatch → probe-run → persist), minus the NL gate.
+
+**Demo decision (O5, locked):** wire **exactly one trigger for real** — the **Gmail deploy-announcement → re-audit** (which we already have from the nxtyou event) — and **narrate the taxonomy** (the event-class incl. offboarding, plus cron-drift) around it. One trigger firing live beats a slide listing five, and it's the difference between "operability CI is a real event-driven system" and "here's a list of things it could hook into" — a *narrated-only* heartbeat reads as stapled-on (critique #7); a heartbeat that fires once, live, reads as built.
 
 ---
 

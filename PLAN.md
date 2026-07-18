@@ -45,6 +45,7 @@ Linnaeus measures how operable an org/codebase is for an AI agent by dropping pr
 | L25 | **Remediation = 5-type taxonomy: Document / Connect / Grant / Fix / Delete** | Org fix is often Connect/Grant (integration/permission), not a doc — capture mode emits connection specs / permission requests / code stubs, not only markdown. Codebase = cheap Delete/Document (the 5-min toy); org = hard Connect/Grant/Fix → **why org is hero**. Connect/Grant ties to the responsibility-gradient/autonomy ladder. |
 | L26 | **Hackathon remediation = emitted typed recommendations; only the pure-code `Fix` is optionally executed live (as *closure*, not the delta)** | The delta is the caught regression (run1→run2 across the change) — remediation does NOT produce it. Linnaeus emits `Fix`/`Document`/`Connect`/`Grant` recommendations for a human to decide. The billing `Fix` is pure code → can be run live *after* the two runs to show the regression closing (optional narration). `Connect`/`Grant` (MCP wiring, permission grants) shown as generated artifacts in UI+video only. (Supersedes "Document+Fix power the delta.") |
 | L27 | **Probe battery (hackathon) = 3–4 fixed + 1 synthesized** (build-load reduction only) | Fixed: auth-boundary, onboard-a-client, can-a-designer-contribute, live-vs-legacy(PDF orphan). Synthesized: billing-regression vs SKMD. One synthesized proves authoring + testability gate. Product tilts toward MORE synthesized (per-org fidelity); fixed carry cross-org comparability. See `probe_lifecycle.md`. |
+| L28 | **Trigger = 1 real fire + narrated taxonomy** (O5 resolved) | Wire ONE trigger live: **Gmail deploy-announcement → re-audit** (already have it from the nxtyou event). Narrate the rest. **Heartbeat = always-on classifier** over event surfaces (Gmail/GitHub/CRM/Slack) asking "operability-relevant change?" → dispatch re-audit — the honest Claw beat, closes critique #7. **Two trigger classes:** (1) *event-triggered* discrete change — new platform/client/vendor/deploy/process, and **onboarding/offboarding a person** (a departure = purest operability regression, thesis-lead: "humans were the completion layer"); (2) *scheduled cron drift sweep* — decay no event caused (stale runbook, rotted dep). One live fire >> a slide of five; narrated-only reads as stapled-on. See `demo_org_change_delta.md` §trigger. |
 
 ---
 
@@ -103,7 +104,7 @@ Full component detail, quickstart commands, VRAM tiers, starter `policy.yaml`, a
 | O2 | The gap the probe stalls on | ✅ Reframed (L17): not in-head glue — **discoverability across 7 surfaces + the stale billing script** (change-lag) |
 | O3 | Probe A/B/C | 🔶 Leaning **billing-regression probe** (L18) + a discoverability probe #2 — *Cameron to lock* |
 | O4 | Surfaces the workflow spans | ✅ Gmail, Notion, SKMD monorepo, Vercel/GoDaddy, GitHub, AWS RDS, Quo/Juniper (§3b) |
-| O5 | Automated trigger vs narrate | 🔶 *Lock later* — the deploy announcement was in a Gmail thread → an event-driven/always-on agent could have caught it (natural trigger story) |
+| O5 | Automated trigger vs narrate | ✅ **Locked (L28):** wire ONE real trigger (Gmail deploy-announcement → re-audit) + narrate the taxonomy |
 | O6 | GPU / candle tier | ✅ **Single box, Nemotron-3-Nano-30B-A3B NVFP4** (L20); serving agent confirming VRAM + Brev reality |
 | O7 | Remediation model | ✅ **The candle itself** — single-model architecture (L19, revised 2026-07-18); no separate frontier author |
 
@@ -139,7 +140,7 @@ Full component detail, quickstart commands, VRAM tiers, starter `policy.yaml`, a
 - [ ] **Calibration cameo** — codebase pre-scan heatmap lighting up where a probe stalls (~20s)
 - [ ] *(stretch)* NemoClaw install routed to the candle
 - [ ] *(stretch)* OpenShell sandbox + adversarial-surviving `policy.yaml`
-- [ ] *(stretch)* Automated event trigger (Juniper pattern); else narrate
+- [ ] **One real trigger (L28):** Gmail deploy-announcement → re-audit (Juniper pattern); narrate the taxonomy (event-class incl. offboarding + cron-drift) around it. **L12 stays supreme: if the live trigger isn't wired by the 11am freeze, narrate it too — never spend delta-protecting time on the webhook.**
 - [ ] **Submission** — per the hackathon Submission Checklist (find + fill), Discord, "Submit Your Project"
 
 ---
