@@ -147,3 +147,8 @@ export async function runBattery(
 export { driveConversation, DEFAULT_MAX_STEPS } from "./loop";
 export { authorInstance } from "./authoring";
 export { classifyRootCause, type RunSignals } from "./classify";
+export {
+  synthesizeProbes,
+  type SynthesisResult,
+  type SynthesizeOptions,
+} from "./synthesize";

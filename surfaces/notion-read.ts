@@ -10,6 +10,13 @@ import { asInt, asString, failed, firstEnv, hasAllEnv, noCreds } from "./util";
 
 const NOTION_VERSION = "2022-06-28";
 
+// Accept a raw 32-hex id, a dashed UUID, OR a Notion URL / name-slug (e.g.
+// "Hightower-Investors-29ed0e53…") and reduce it to the id the API wants.
+function normalizeNotionId(raw: string): string {
+  const m = raw.match(/[0-9a-fA-F]{32}/);
+  return m ? m[0] : raw.trim();
+}
+
 function notionHeaders(key: string): Record<string, string> {
   return {
     Authorization: `Bearer ${key}`,
@@ -32,8 +39,9 @@ const notionQueryTasks: SurfaceTool = {
   },
   async invoke(args): Promise<SurfaceToolResult> {
     const key = firstEnv("NOTION_API_KEY");
-    const dbId = firstEnv("NOTION_TASKS_DB_ID");
-    if (!key || !dbId) return noCreds("notion");
+    const rawDbId = firstEnv("NOTION_TASKS_DB_ID");
+    if (!key || !rawDbId) return noCreds("notion");
+    const dbId = normalizeNotionId(rawDbId);
     const pageSize = asInt(args.page_size, 25, 50);
     const query = asString(args.query);
     const body: Record<string, unknown> = { page_size: pageSize };

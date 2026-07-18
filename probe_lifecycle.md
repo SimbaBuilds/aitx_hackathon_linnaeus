@@ -52,6 +52,24 @@ Registry ─┬─ universal → hardcoded instance ─────────�
 | **Live-vs-Legacy (PDF orphan)** — classify the prescription-PDF path | fixed / universal | codebase | the negative-space cameo; remediation = Delete |
 | **Onboard a client end-to-end** | fixed / universal | org | the workflow that now touches nxtyou |
 | **Billing regression** — "compute this month's invoices" run before/after nxtyou | **synthesized** | org | authored against SKMD; proves instantiation + testability gate; hero delta = the caught regression across the change |
+| **Change discoverability** — "assemble everything that changed when nxtyou went to prod, from the org's records alone" | **synthesized** | org / **cross-surface** (Notion + Gmail + repo) | the org-level negative-space probe — stalls where knowledge is scattered/undocumented; complements the code-level billing probe |
+
+> **Note (added 2026-07-18, not yet built):** *Change discoverability* is the org-level counterpart to the code-level billing probe. Where billing proves the regression *inside the codebase*, this proves the org thesis — an agent operating *across* your real surfaces and stalling on scattered context. Needs Gmail/Notion (Drive optional) creds wired (WS-E has the adapters; they're `unavailable` until creds land). **Run it on the self-hosted Nemotron candle** so org content stays on your infra. No PHI in these surfaces (confirmed by owner).
+
+---
+
+## The "change discoverability" probe (org-level, cross-surface)
+
+The org counterpart to the billing probe. Instead of "does the code price this client type," it asks: **can an agent reconstruct what a real change was, using only what the org wrote down?** The instance is authored against a real event — *nxtyou going to prod this week*.
+
+- **Task:** "Assemble a complete account of the nxtyou-to-prod change: what shipped, where it's documented, what it touches, and who owns it — using only the org's records." The candle must pull across **Notion** (the progress/task notes), **Gmail** (the deploy-announcement thread), and the **repo** (the commits) and stitch them into one coherent account.
+- **Checkpoint (first correct move):** located the change context on ≥2 surfaces (e.g. the Gmail announcement *and* the repo commits).
+- **Success gate:** produced a coherent, sourced account — what shipped, where each piece is documented, ownership.
+- **Stall root-causes (the org negative space):**
+  - the deploy announcement lived only in a Gmail thread, nowhere indexed → `no-runbook` / `missing-doc` → **Document** (an index/runbook) or **Connect** (wire the Gmail thread → an event hook — ties to the L28 trigger)
+  - progress notes in Notion not linked to the change → `missing-doc` → **Document**
+  - no single owner/dependency record → `no-owner` → **Document / Connect**
+- **Why it matters:** it's the demo's proof that Linnaeus is about the **org**, not just the codebase — negative-space detection across scattered surfaces, exactly the L17 discoverability-friction lean. Pairs with billing as *code-level regression* + *org-level discoverability* from one instrument.
 
 ---
 
