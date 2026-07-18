@@ -102,8 +102,9 @@ export function createCandle(cfg: CandleConfig = {}): CandleClient {
       }
     : {
         baseURL: "https://api.anthropic.com/v1/",
-        // env-overridable in case the OpenAI-compat layer wants a versioned id
-        model: cfg.model ?? process.env.DEV_CANDLE_MODEL ?? "claude-opus-4-8",
+        // M1 (revised 2026-07-18): dev stand-in = Sonnet 5 (~2.5x cheaper than
+        // Opus, near-Opus tool-use). Dev-only; measured runs go to Nemotron.
+        model: cfg.model ?? process.env.DEV_CANDLE_MODEL ?? "claude-sonnet-5",
         apiKey: cfg.apiKey ?? process.env.ANTHROPIC_API_KEY ?? "",
         quant: null,
       };

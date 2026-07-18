@@ -1,0 +1,49 @@
+{
+  "target": "SKMD",
+  "candle": {
+    "model": "nemotron",
+    "quant": null,
+    "seed": 42,
+    "temp": 0
+  },
+  "delta": 53.6676,
+  "before": {
+    "run_id": "run_before_1784401323602",
+    "probe_id": "billing-coverage",
+    "status": "completed",
+    "friction_vector": {
+      "completed": true,
+      "seconds_to_first_correct_move": 9.972,
+      "surfaces_opened": 1,
+      "tool_calls": 10,
+      "retries": 0,
+      "dead_ends": 0,
+      "guessed": false,
+      "hedging_count": 0
+    },
+    "root_cause_tag": "none",
+    "remediation": null
+  },
+  "after": {
+    "run_id": "run_after_1784401323602",
+    "probe_id": "billing-coverage",
+    "status": "stalled",
+    "friction_vector": {
+      "completed": false,
+      "seconds_to_first_correct_move": 7.123,
+      "surfaces_opened": 1,
+      "tool_calls": 20,
+      "retries": 0,
+      "dead_ends": 0,
+      "guessed": false,
+      "hedging_count": 0
+    },
+    "root_cause_tag": "stale-code",
+    "remediation": {
+      "type": "Fix",
+      "content": "Update the monthly invoice script to price nxtyou D2C patient billing — it currently only handles medspa/docuspa clients.",
+      "target": "skmd_fastapi/scripts/billing/generate_skmd_monthly_invoice.py",
+      "provenance": "candle-inferred (confirmed by owner: D2C billing not yet implemented)"
+    }
+  }
+}

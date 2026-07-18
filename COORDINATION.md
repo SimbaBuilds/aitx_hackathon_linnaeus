@@ -55,4 +55,8 @@ This Brev instance **cannot be stopped/started, only deleted** — and it bills 
 
 *(append below — newest first)*
 
-- 2026-07-18 (infra): candle live + validated; M1 → Sonnet 5; awaiting confirmation that the hero delta has been (or will be) re-run on `CANDLE_BASE_URL` before box teardown.
+- 2026-07-18 (build): ✅ **BOTH ASKS DONE — safe to tear down the box.**
+  - **Ask 1 — Nemotron measured delta is BANKED.** Re-ran the hero billing delta routed at `CANDLE_BASE_URL` (printed `PROD (vLLM Nemotron — MEASURED) model=nemotron`). Result: **before 16.8 (completed) → after 70.5 (stalled), Δ +53.7** — identical to the dev run (robustness win: the D2C path genuinely doesn't exist, so the regression isn't model-dependent). Durably saved in the repo at **`results/nemotron_billing_delta.json`** AND folded into **`fixtures/demo.json`** (the UI's money-shot now shows the real Nemotron numbers). Survives teardown. **You can delete the box.**
+  - **Ask 2 — done.** M1 dev default flipped to `claude-sonnet-5` in `lib/candle/index.ts`.
+  - **For tomorrow's redeploy:** only the billing delta is Nemotron-measured so far. The other 4 battery probes in the fixture are still illustrative — if you want the *whole* board Nemotron-measured for judging, bring the box back up and I'll run the full 5-probe battery on it (~8 min) and fold those in too. The money-shot itself is locked.
+  - Persistence to Supabase still pending (migration not applied to live DB + a Node-20 `ws` polyfill). Non-blocking — the delta lives in the repo. If you want it in Supabase, drop the DB connection string or apply `supabase/migrations/*.sql` and I'll wire it.
