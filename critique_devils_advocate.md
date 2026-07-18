@@ -4,6 +4,14 @@
 
 Last updated: 2026-07-18.
 
+> **✅ RESOLUTION (2026-07-18 pivot).** Attacks **#3** (delta is gameable/contrived) and **#4** (capture mode is a value-deferral patch) are now **structurally addressed**, and **#7/#8** are meaningfully softened:
+> - **#3 → resolved.** The delta no longer comes from Linnaeus fixing the org ("I wrote the doc, then the agent found the answer"). It comes from the **org changing on its own** (nxtyou → prod) with Linnaeus **re-auditing and catching the regression**. You didn't author the change → you can't teach to the test. Recursion = re-audit of a changed org.
+> - **#4 → resolved.** Capture mode is demoted from delta-engine to the audit's **data-gathering + typed-recommendation-authoring** layer. The value isn't deferred by a bolt-on; the diagnosis (which now includes catching real regressions) carries same-session value on its own.
+> - **#7 → softened.** The heartbeat is now honest and native: it **fires on the real org-change event** and re-audits (operability CI). Make one trigger fire for real in the demo and this stops being a rationalization.
+> - **#8 → softened.** With remediation demoted to a lightweight recommendation the **candle itself** authors (no separate frontier model), *all* the intelligence in the system is the Nemotron candle — which is exactly what "Best Use of Nemotron" rewards.
+> - **#5/#11 (who-pays / melting iceberg)** remain the open strategic attacks — the governance/audit reframe in the rebuttals is the intended answer; still worth sharpening.
+> See `demo_org_change_delta.md`, `PLAN.md` (L3–L5, L19, L26), and the Q&A in `hackathon_fit_thoughts.md` for the reasoning.
+
 ---
 
 ## The "you built a benchmark and called it a product" attack
@@ -46,7 +54,7 @@ Last updated: 2026-07-18.
 
 ## Rebuttals — how to answer these so you're not just absorbing punches
 
-- **On 2/3 (is-a-benchmark, delta-is-gameable):** lean hard on **negative-space + the testability gate** — the differentiator is that you log a maximal finding *when the agent can't even author the probe*, which no eval harness does, and that Connect/Grant remediations (wiring a tool, granting access) are *not* teachable-to-the-test the way a doc is.
+- **On 2/3 (is-a-benchmark, delta-is-gameable):** the primary answer is now the **regression framing** — the delta is a real change's operability cost that Linnaeus *caught*, not a score it *lifted*; you didn't author the change, so there's nothing to teach-to-the-test. Backstop with **negative-space + the testability gate** — you log a maximal finding *when the agent can't even author the probe*, which no eval harness does — and the point that org-level Connect/Grant remediations aren't teachable-to-the-test the way a doc is.
 - **On 5/11 (who-pays, melting iceberg):** the answer is **governance/audit, not capability** — even omni-competent agents need a *legibility and access ledger* for compliance, blast-radius, and "should this agent have been able to touch prod." Reframe from "readiness" (melts) to "operability governance" (regulatory floor, doesn't melt).
 - **On 7 (not-a-Claw-agent):** don't rationalize — **own operability-CI as the honest event-driven form** and make the trigger actually fire on a real GitHub/Gmail event in the demo. One real automated fire beats three paragraphs of "well, technically."
 - **On 10 (no oh-moment):** the **testability gate is your oh-moment** — "the agent couldn't even *build the test* because the org was too illegible to load the instrument" is a genuinely novel beat. Lead the demo with a probe that fails to instantiate, not with the heatmap.

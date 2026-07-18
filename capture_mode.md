@@ -4,6 +4,8 @@
 
 > **Name:** *Capture mode* — the naturalist collecting specimens rather than just surveying the habitat. Same instrument, different act. Passive mode measures; capture mode captures.
 
+> **⚠️ SCOPE CORRECTION (2026-07-18 pivot).** Capture mode is **the audit's data-gathering + typed-recommendation-authoring layer — NOT the source of the hero delta.** The delta comes from the **org changing on its own** (a real regression the re-audit catches), never from "measure → fill → re-measure → score rose." So wherever this doc says the re-run/re-measure *produces* the delta (e.g. "step 3 produces 40 → 65 after documenting X"), read that as **superseded**: capture enriches findings and authors the recommendations a human decides on; it does not close a self-improvement loop and does not generate the headline number. The "acceptance-test re-run" survives only as an *optional closure check on an executed pure-code `Fix`*, decoupled from the delta. Everything else in this doc (the stall-authors-the-question property, the two streams, batching, write targets, provenance) stands.
+
 ---
 
 ## The gap it fills
@@ -39,21 +41,18 @@ Stream one is a journal; stream two is an interview. Same mode, two triggers, on
 
 ## The trap: don't contaminate the measurement
 
-The moment the agent can ask a human, the **standard-candle property breaks** — you can't score operability cleanly while feeding the instrument the answers. So passive and capture are not a toggle you flip mid-run. They're **two phases in a fixed order:**
+The moment the agent can ask a human, the **standard-candle property breaks** — you can't score operability cleanly while feeding the instrument the answers. So passive and capture are not a toggle you flip mid-run. They're **ordered phases:**
 
-1. **Silent probe** → clean friction score. The baseline, uncontaminated by any human help.
-2. **Capture pass** over the findings → capture answers, write artifacts.
-3. **Re-run the same probes** → the delta.
+1. **Silent probe** → clean friction score. The baseline, uncontaminated by any human help. *(This is what the hero delta compares across a real org change — Run 1 vs Run 2.)*
+2. **Capture pass** over the findings → gather recoverable knowledge (write-back) + the answers to any unrecoverable gaps, and **author the typed recommendation** (`Document`/`Connect`/`Grant`/`Fix`/`Delete`) the human will decide on.
 
-Measure, then fill, then re-measure. Blur the phases and you lose the number that makes the whole pitch land. Kept sequenced, capture mode *strengthens* the scoring story instead of muddying it — because step 3 is what produces "40 → 65 after documenting X."
+> **⚠️ The old step 3 — "re-run the same probes → the delta" — is superseded.** Capture does **not** produce the delta. The delta is the regression the re-audit catches when the *org itself* changes (see `demo_org_change_delta.md`). Keeping capture strictly *after* the silent measurement still matters — for the standard-candle purity of any given run — but re-measuring-after-you-filled-the-gap is no longer the pitch's number.
 
 ---
 
-## The re-run is the acceptance test
+## Optional closure check (not the delta)
 
-Because the same instrument that found the gap can re-attempt the task, captured knowledge gets verified for free: **does the doc it just wrote actually make the probe pass?** If the re-run still stalls, the capture was incomplete and the interview continues. If it passes, the knowledge is now genuinely in the system, not just transcribed.
-
-Diagnosis → capture → re-measure, one instrument, one sitting. The loop closes on itself.
+Because the same instrument that found the gap can re-attempt the task, an **executed pure-code `Fix`** can be verified for free: **does applying the Fix make the probe pass again?** This is an *optional closure demonstration* on top of the regression delta — "here's the caught regression, and here's the one-line Fix closing it" — not the mechanism that generates the headline number. For non-code remediations (`Document`/`Connect`/`Grant`), closure is a human decision, so there's no automatic re-run to claim.
 
 ---
 
@@ -86,6 +85,8 @@ Passive mode proves the instrument on code; capture mode is what makes it matter
 
 ## The commercial shape
 
-The silent score is the **pitch** — "here's where you're secretly depending on human glue." The populated CLAUDE.md's and the org knowledge-map you walk out with are the **deliverable people pay for.** Immediate ROI in a consulting engagement: sit with the client, run the battery, and every stall becomes a captured doc before you leave the room — with a re-run that proves each capture landed.
+The silent score is the **pitch** — "here's where you're secretly depending on human glue, and here's the regression your last change introduced." The populated CLAUDE.md's, the typed recommendations, and the org knowledge-map you walk out with are the **deliverable people pay for.** Immediate ROI in a consulting engagement: sit with the client, run the battery, and every stall becomes a captured artifact + a typed recommendation before you leave the room.
 
-This is also the answer to "the passive audit's value is deferred to Monday." Capture mode moves the payoff into the session.
+This is the answer to "the passive audit's value is deferred to Monday": capture mode moves the *authoring of what-to-do-about-it* into the session — the **human still decides** whether to act (especially on org-level `Connect`/`Grant` calls), but they leave holding the recommendation, not a blank page.
+
+*(Note: capture mode is not the source of the hero delta — that's the re-audit catching a real change's regression. Capture is how the session turns findings into decidable recommendations.)*

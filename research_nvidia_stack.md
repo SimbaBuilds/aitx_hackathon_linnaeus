@@ -121,7 +121,7 @@ NVIDIA's GPU-cloud platform (acquired from brev.dev). Gives one-click access to 
  └───────────────────────────────────────────────────────────────────────┘
 ```
 
-**Flow:** NemoClaw installs OpenClaw into an OpenShell sandbox and points its inference provider at your existing vLLM Nemotron endpoint. Your Juniper dispatch fires probe cycles (OpenClaw heartbeat is a natural driver for the "repeated-inference workload" the vLLM bounty wants). Probes attempt real tasks inside the sandbox; the OpenShell policy is what makes "they tried to push to main / read a secret and were blocked" a *measurable, governed* friction event rather than a dangerous one. Doc-remediation writes go to an allowed branch path; re-probe measures the delta.
+**Flow:** NemoClaw installs OpenClaw into an OpenShell sandbox and points its inference provider at your existing vLLM Nemotron endpoint. Your Juniper dispatch fires probe cycles (OpenClaw heartbeat is a natural driver for the "repeated-inference workload" the vLLM bounty wants). Probes attempt real tasks inside the sandbox; the OpenShell policy is what makes "they tried to push to main / read a secret and were blocked" a *measurable, governed* friction event rather than a dangerous one. The delta is measured by **re-auditing across a real org change** (the caught regression); emitted recommendations / an optional pure-code `Fix` write to an allowed branch path.
 
 **Where inference is served:** on the host (or a GPU-enabled inference sandbox) — NOT re-served per agent. Everything shares the one pinned candle. **Where the sandbox sits:** wraps the *agent*, not the model server; the model is an allowed network egress target.
 

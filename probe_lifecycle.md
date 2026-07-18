@@ -25,7 +25,7 @@ The **pinned candle** (Nemotron-on-vLLM, fixed tag+quant+seed+temp) attempts the
 - **Correctness gate** (coarse): supplied for free on the own-system demo because Cameron lived it. Catches the confident-wrong run.
 
 ### 5. Cache
-Synthesized instances are cached **per-org**, versioned. Same instance re-run over time → the **longitudinal baseline** and the run1→run2 delta (`40 → 65 after documenting X`). Fixed probes give comparability; cached synthesized give continuity — neither does the other's job.
+Synthesized instances are cached **per-org**, versioned. Same instance re-run over time → the **longitudinal baseline** and the run1→run2 delta — which is a **caught regression across a real org change** (`friction 22 → 61 after nxtyou shipped`), *not* an improvement Linnaeus authored. Fixed probes give comparability; cached synthesized give continuity — neither does the other's job.
 
 ```
 Registry ─┬─ universal → hardcoded instance ─────────────┐
@@ -51,7 +51,7 @@ Registry ─┬─ universal → hardcoded instance ─────────�
 | **Can a designer contribute?** — designer-scoped change with only what's documented | fixed / universal | codebase | Boris-aligned; fails on missing CLAUDE.md / conventions / tokens |
 | **Live-vs-Legacy (PDF orphan)** — classify the prescription-PDF path | fixed / universal | codebase | the negative-space cameo; remediation = Delete |
 | **Onboard a client end-to-end** | fixed / universal | org | the workflow that now touches nxtyou |
-| **Billing regression** — "compute this month's invoices incl. nxtyou" | **synthesized** | org | authored against SKMD; proves instantiation + testability gate; hero delta |
+| **Billing regression** — "compute this month's invoices" run before/after nxtyou | **synthesized** | org | authored against SKMD; proves instantiation + testability gate; hero delta = the caught regression across the change |
 
 ---
 
@@ -71,6 +71,6 @@ It's intuitive to a judge and maps straight to "encode domain knowledge as infra
 
 ## How this connects to the rest
 
-- **Remediation** (Document/Connect/Grant/Fix/Delete) attaches to each finding — see PLAN L25/L26. On the hackathon, Document+Fix are executed for real (they power the delta); Connect+Grant are demonstrated artifacts.
-- **Capture mode** (`capture_mode.md`) is what runs step 4→remediation: recoverable knowledge → write-back; unrecoverable → interview. On Cameron's well-documented org it runs mostly write-back + the Connect/Grant artifacts, not the interview.
+- **Remediation** (Document/Connect/Grant/Fix/Delete) is a **typed recommendation the candle emits** off each finding's tagged root-cause — see PLAN L25/L26. It does **not** power the delta (the delta is the caught regression across a real change). On the hackathon, recommendations are emitted for a human to decide; only the pure-code `Fix` is *optionally* executed live as closure. Connect+Grant are demonstrated artifacts.
+- **Capture mode** (`capture_mode.md`) is the audit's data-gathering + recommendation-authoring layer at step 4: recoverable knowledge → write-back; unrecoverable → interview → typed recommendation. On Cameron's well-documented org it runs mostly write-back + the Connect/Grant artifacts, not the interview. Capture is not the delta source.
 - **Two-mechanism validity** (`brainstorming_artifact.md`): comparability from fixed probes, continuity from cached synthesized. The lifecycle is where both are produced.

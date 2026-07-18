@@ -57,6 +57,8 @@ The fixed set carries comparison; the cached set carries continuity. Neither can
 
 Runtime-authored probes make scores noisy across runs — the agent might synthesize an easier probe today than yesterday for the same category, and the number wobbles for reasons unrelated to the org changing. For the demo this doesn't matter. For the product it's the core validity problem: pin the specific probes on first run, version them per org, and only re-synthesize deliberately. That's the line between a cute demo and a measurement you'd stake a consulting recommendation on.
 
+**This is exactly what the hero demo turns into a feature.** Pin the probe, hold the candle fixed, and re-run across a *real org change* — then any friction movement is attributable to the org, not the instrument. That's **drift/regression detection**: Run 1 (before the change) → the org changes on its own (nxtyou → prod) → Run 2 (after) shows the operability regression the change introduced. The audit doesn't improve the org across runs; it *catches* what a real change did to operability, and emits a typed recommendation the human decides on. Recursion here = re-auditing a changed target, which is the honest form of the "delta between runs" story. See `demo_org_change_delta.md`.
+
 ---
 
 ## Multi-agent shape

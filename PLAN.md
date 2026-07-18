@@ -10,7 +10,7 @@ Last updated: 2026-07-17.
 
 ## 0. One-liner
 
-Linnaeus measures how operable an org/codebase is for an AI agent by dropping probe-agents that attempt real work; wherever they stall is a finding. The hero demo: **operability CI for the enterprise** — measure the operability *delta* of a real org change (this week's platform-to-prod), recursively (probe → document → re-probe), on a pinned open-weight "standard candle."
+Linnaeus measures how operable an org/codebase is for an AI agent by dropping probe-agents that attempt real work; wherever they stall is a finding. The hero demo: **operability CI for the enterprise** — measure the operability *delta* of a real org change (this week's platform-to-prod) by **re-auditing across the change and catching the regression** (Run 1 before → the org changes on its own → Run 2 after = friction rose), on a pinned open-weight "standard candle." Recursion = re-audit of a changed org, not self-improvement; remediation is a typed recommendation the candle emits for a human to decide, never the source of the delta.
 
 ---
 
@@ -20,30 +20,30 @@ Linnaeus measures how operable an org/codebase is for an AI agent by dropping pr
 |---|---|---|
 | L1 | **Hero = the org, via a bounded change-delta** — not a whole-org audit | Verifiable because Cameron is ground truth; see `demo_org_change_delta.md` |
 | L2 | **Codebase demoted to a ~20s calibration cameo** | Proves the instrument on a legible substrate, then turn it on the org |
-| L3 | **Frame = Recursive Intelligence track** (improvement delta across runs) | Track judges the run1→run2 delta; doesn't require always-on |
-| L4 | **Standard candle = fixed & memory-less**; improvement externalized into the org's own docs, not cached | The honesty guardrail; also the Boris "encode as infra" point |
-| L5 | **Two-model split:** pinned Nemotron candle for *probing/measurement*; stronger/frontier model for *remediation authoring* | Only the measurement needs pinning; remediation quality wants to be high |
+| L3 | **Frame = Recursive Intelligence track** via **drift/regression delta** across runs | Track judges the run1→run2 delta; the delta is a *caught regression across a real org change*, not self-improvement; doesn't require always-on |
+| L4 | **Standard candle = fixed & memory-less** → the **only variable between runs is the org itself**, so the delta is attributable to the change | The honesty guardrail; Linnaeus didn't author the change → can't be teaching-to-the-test |
+| L5 | **Single-candle architecture (revised 2026-07-18):** the pinned Nemotron candle does probing/measurement AND authors the typed remediation recommendation. **No separate frontier remediation author.** | Remediation is now *output a human decides on*, so it's a lightweight templating step off the tagged root-cause — doesn't want a frontier model. Airtight "Best Use of Nemotron": *all* intelligence is the candle. Heavyweight strategic remediation = "Linnaeus Pro" roadmap, not the build. (Supersedes old two-model split.) |
 | L6 | **Candle served on Nemotron + vLLM** (OpenAI-compatible endpoint) | Satisfies vLLM + Nemotron bounties from one endpoint |
 | L7 | **Candle tier = as large as the Brev GPU allows**: Super-120B if 4×H100, else Nano-30B-A3B (NVFP4) single-GPU | Don't downsize to chase "small-model punch"; capability > bounty adjective |
 | L8 | **Sequencing: stable first, alpha last** — get vLLM+Nemotron working standalone (the $500, zero alpha risk), *then* layer NemoClaw/OpenShell | NemoClaw/OpenShell are ~4-month-old alpha; people struggling with them |
 | L9 | **OpenShell/NemoClaw = IN** (integrated path confirmed) | NemoClaw supports "Existing vLLM" provider → candle IS the routed endpoint; ~70% shared work |
 | L10 | **Reuse Juniper's event-dispatch pattern, drop the NL gate** | Dev operator; lean trigger → probe-run → persist |
-| L11 | **Probe engine is the depth** — one core reused at every stage | audit / remediation / re-probe / drift-check |
-| L12 | **Critical path order (protect the delta):** engine+instrumentation → run1 audit+remediation → **run2 delta (non-negotiable)** → event-driven trigger | Cut down from the trigger, never sacrifice the delta |
+| L11 | **Probe engine is the depth** — one core reused at every stage | run-1 audit / re-audit / regression delta / recommendation-emit — the *drift-check* is the point; remediation is an emitted recommendation, not a pipeline stage that mutates the org |
+| L12 | **Critical path order (protect the delta):** engine+instrumentation → run1 baseline audit → **run2 re-audit of the changed org = regression delta (non-negotiable)** → emit typed recommendation + event-driven trigger | Cut down from the trigger, never sacrifice the delta |
 | L13 | **Antler "Most Commercializable" — pitch it** (low marginal effort) | Real consulting product; wedge = *measurement/diagnosis of org operability*, not "understands your code" |
 | L14 | **Skip: HiddenLayer track, NIM path** | Orthogonal / would forfeit vLLM bounty's "you stood up vLLM" criteria |
 | L15 | **Quo/Henry bug = pitch asset only**, not a build component | Use as a real production *pass* of the "client-report-to-fix" probe (evidence slide) |
 | L16 | **App name = Linnaeus**; probe = "Legacy Legibility" / stage "Live vs. Legacy" | Naming settled earlier |
 | L17 | **On Cameron's org the demo leans discoverability-friction + change-lag, NOT tribal-knowledge interview** | Cameron documents everything → little "unrecoverable/in-head" to elicit. Operability = can an agent *find & assemble* docs scattered across 7 surfaces, and how fast does a change erode that. Honest + generalizes to disciplined enterprises. Capture mode runs mostly stream-one (write-back), not stream-two (interview). |
-| L18 | **Hero probe (tentative, O3) = the billing regression** | "Compute this month's client invoices, now that nxtyou is in prod" → stalls because the billing script predates nxtyou's D2C path. Verifiable (Cameron = ground truth), bounded, recursive. Remediation here is *code* (update script) — reinforces "operability CI catches a regression." Pair with a discoverability probe as #2. |
-| L19 | **Remediation authoring model = Sonnet 5** (O7 resolved) | Not the candle → needn't be open/self-hosted; quality drives delta size; frontier author + ~0 setup. Nemotron stays the pinned candle. |
+| L18 | **Hero probe (O3) = the billing regression, run as before/after** | "Compute this month's client invoices." Run 1 (pre-change scope) completes; Run 2 (post-nxtyou scope, D2C clients) stalls/mis-prices because the billing script predates the D2C path. The **change is the only variable** → the delta is a caught regression. Verifiable (Cameron = ground truth), bounded. The `Fix` (update script) is emitted as a recommendation + **optionally narrated as executed after the two runs** — it is NOT the source of the delta. Pair with a discoverability probe as #2. |
+| L19 | **Remediation authoring = the candle itself** (O7 resolved 2026-07-18; supersedes "Sonnet 5") | Remediation demoted to *typed output a human decides on*, so it's a lightweight step off the tagged root-cause — the pinned Nemotron candle authors the recommendation card. **No separate/frontier author.** Collapses the two-model split (L5). Strengthens the Nemotron bounty (all intelligence is the candle). Heavyweight strategic planning = "Linnaeus Pro" roadmap only. |
 | L20 | **GPU baseline = single box, candle = Nemotron-3-Nano-30B-A3B; quant depends on GPU** (O6 resolved) | **NVFP4 (~21GB) is Blackwell-only** (B200 / RTX PRO 6000). On the more-likely Hopper/Ampere (H100/A100) use the **FP8** checkpoint (~32GB — fits H100 80GB). $100 Brev ≈ 50h on A100/H100 @ ~$2/hr **if you Stop when idle**. Ready-made "Deploying Nemotron-3-Nano with vLLM" Brev Launchable exists. |
 | L21 | **Reasoning-parser = `nano_v3` (Nano) / `super_v3` (Super), NOT `deepseek_r1`** | `deepseek_r1` **breaks tool calling** (documented HF issue); `nemotron_v3` doesn't exist. Tool-call-parser = `qwen3_coder`. Tool use is required for our probe agent → this is load-bearing. |
 | L22 | **UI = Next.js (App Router) + Tailwind + shadcn, deployed on Vercel; 3 views only; no real auth** | Views: (1) operability heatmap/negative-space map, (2) findings + remediation type, (3) run1→run2 delta. SKMD muscle memory. Optional fake login as Antler polish only. Stub from fixture JSON so UI never blocks the delta (L12). |
 | L23 | **Styling: shadcn + custom theme (tweakcn) + polished blocks (Origin UI / Kibo UI) + distinctive font** | Avoid default-shadcn "AI-generated" look. Timebox hard — styling is the hour-six rabbit hole. Load `dataviz` skill for heatmap/graph. |
-| L24 | **DB = Supabase.** Schema: `runs` / `probes` / `findings` / `artifacts` / `surfaces` | Powers the delta + longitudinal baseline (same probe across runs = 40→65). `findings.friction_vector` JSON; `artifacts` = capture-mode outputs. |
+| L24 | **DB = Supabase.** Schema: `runs` / `probes` / `findings` / `artifacts` / `surfaces` | Powers the delta + longitudinal baseline (same probe across runs = the regression line, e.g. friction 22 → 61 after nxtyou shipped). `findings.friction_vector` JSON; `artifacts` = emitted typed recommendations + capture-mode data-gathering outputs. |
 | L25 | **Remediation = 5-type taxonomy: Document / Connect / Grant / Fix / Delete** | Org fix is often Connect/Grant (integration/permission), not a doc — capture mode emits connection specs / permission requests / code stubs, not only markdown. Codebase = cheap Delete/Document (the 5-min toy); org = hard Connect/Grant/Fix → **why org is hero**. Connect/Grant ties to the responsibility-gradient/autonomy ladder. |
-| L26 | **Hackathon remediation execution: Document + Fix executed for real (power the delta); Connect + Grant = demonstrated artifacts only** | The hero probe's remediation (billing Fix / discoverability Document) is genuinely applied on a branch so run2's delta is real. Real MCP wiring / live permission grants are out of scope — shown as generated artifacts in UI+video. |
+| L26 | **Hackathon remediation = emitted typed recommendations; only the pure-code `Fix` is optionally executed live (as *closure*, not the delta)** | The delta is the caught regression (run1→run2 across the change) — remediation does NOT produce it. Linnaeus emits `Fix`/`Document`/`Connect`/`Grant` recommendations for a human to decide. The billing `Fix` is pure code → can be run live *after* the two runs to show the regression closing (optional narration). `Connect`/`Grant` (MCP wiring, permission grants) shown as generated artifacts in UI+video only. (Supersedes "Document+Fix power the delta.") |
 | L27 | **Probe battery (hackathon) = 3–4 fixed + 1 synthesized** (build-load reduction only) | Fixed: auth-boundary, onboard-a-client, can-a-designer-contribute, live-vs-legacy(PDF orphan). Synthesized: billing-regression vs SKMD. One synthesized proves authoring + testability gate. Product tilts toward MORE synthesized (per-org fidelity); fixed carry cross-org comparability. See `probe_lifecycle.md`. |
 
 ---
@@ -77,8 +77,8 @@ ONE GPU BOX (Brev instance)
   OpenShell sandbox  ← policy.yaml: version/filesystem_policy/landlock/process/network_policies
                        (read-only git = allow git-upload-pack, omit git-receive-pack; landlock hard_requirement)
 
-Remediation authoring = separate stronger/frontier model (Sonnet 5, NOT the candle, not pinned)
-Trigger = Juniper event-dispatch pattern (NL gate removed)
+Remediation authoring = the SAME pinned candle (typed recommendation card off the tagged root-cause; no separate/frontier model — revised 2026-07-18)
+Trigger = Juniper event-dispatch pattern (NL gate removed), fires on the org-change event
 ```
 
 Full component detail, quickstart commands, VRAM tiers, starter `policy.yaml`, and source URLs: `research_nvidia_stack.md`.
@@ -105,7 +105,7 @@ Full component detail, quickstart commands, VRAM tiers, starter `policy.yaml`, a
 | O4 | Surfaces the workflow spans | ✅ Gmail, Notion, SKMD monorepo, Vercel/GoDaddy, GitHub, AWS RDS, Quo/Juniper (§3b) |
 | O5 | Automated trigger vs narrate | 🔶 *Lock later* — the deploy announcement was in a Gmail thread → an event-driven/always-on agent could have caught it (natural trigger story) |
 | O6 | GPU / candle tier | ✅ **Single box, Nemotron-3-Nano-30B-A3B NVFP4** (L20); serving agent confirming VRAM + Brev reality |
-| O7 | Remediation model | ✅ **Sonnet 5** (L19) |
+| O7 | Remediation model | ✅ **The candle itself** — single-model architecture (L19, revised 2026-07-18); no separate frontier author |
 
 ---
 
@@ -133,9 +133,9 @@ Full component detail, quickstart commands, VRAM tiers, starter `policy.yaml`, a
 - [ ] **Stable foundation:** `vllm serve nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-{NVFP4|FP8}` (quant per GPU, L20) with `--tool-call-parser qwen3_coder --reasoning-parser nano_v3` (L21), verify `curl /v1/models` + a tool-calling smoke test — *banks the $500, no alpha dependency. Full command in `research_vllm_serving_runbook.md`.*
 - [ ] **Probe engine + friction instrumentation** (the reused core) — probes attempt tasks, log stall/seconds/surfaces/guessing
 - [ ] **Org surfaces wired** (Drive/Gmail/repo/platform per O4)
-- [ ] **Run 1** — probe the post-change workflow, capture the stall + friction vector
-- [ ] **Remediation writer** — stronger model writes runbook/ownership/config into the org's own records
-- [ ] **Run 2 (THE DELTA — non-negotiable)** — same candle, workflow completes, friction drops; produce the delta chart
+- [ ] **Run 1 (baseline)** — probe the workflow on the pre-change org state, capture the clean friction vector
+- [ ] **Run 2 (THE DELTA — non-negotiable)** — same candle re-audits the *changed* org (nxtyou in prod); workflow now stalls/regresses; produce the delta chart showing friction *rose*
+- [ ] **Recommendation emit** — the candle authors the typed recommendation card (`Fix`/`Document`/…) off the tagged root-cause; *(optional)* run the billing `Fix` live as closure
 - [ ] **Calibration cameo** — codebase pre-scan heatmap lighting up where a probe stalls (~20s)
 - [ ] *(stretch)* NemoClaw install routed to the candle
 - [ ] *(stretch)* OpenShell sandbox + adversarial-surviving `policy.yaml`

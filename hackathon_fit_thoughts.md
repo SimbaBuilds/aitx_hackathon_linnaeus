@@ -2,22 +2,26 @@
 
 *The short version. Full reasoning in `hackathon_fit_brainstorm.md`.*
 
+> **⚠️ PIVOT (2026-07-18) — read first.** The "measurably gets smarter each run / Linnaeus remediates → re-probe passes → delta rises" framing below is **superseded**. Linnaeus is the **audit layer**; it does not close the loop. The delta now comes from the **org changing on its own** (nxtyou → prod), with Linnaeus **re-auditing** and catching the **regression** — *recursion = re-audit of a changed org, not self-improvement.* Remediation demotes to a **typed recommendation the candle emits** for a human to decide (single model; **no separate frontier remediation author**). The guidance sections directly below are rewritten to the new framing; the dated Q&A in the Addendum is kept as historical record with superseded points flagged inline. See `demo_org_change_delta.md` and `critique_devils_advocate.md` for the full reasoning.
+
 ## Bottom line
 
-Your instinct is correct, and the event *rewards* it. The hackathon is built entirely around **Claw Agents = heartbeat-driven, persistent, self-improving loops.** One-shot-audit Linnaeus doesn't fit that; **continuous, self-improving operability monitor** Linnaeus fits it almost perfectly. Same thesis, new cadence.
+Your instinct is correct, and the event *rewards* it — but honestly, not as a "self-improving" agent. The hackathon is built around **Claw Agents = heartbeat-driven, event-triggered loops.** One-shot-audit Linnaeus doesn't fit that; **operability CI** Linnaeus does: an audit that **fires on a real org-change event and catches the operability regression** the change introduced. Same thesis, honest cadence — no need to claim the agent gets smarter.
 
-## The move: enter the Recursive Intelligence Track
+## The move: enter the Recursive Intelligence Track — as *drift detection*
 
-Their ask is *"an agent that measurably gets smarter the more it runs, compounds what it learns into a persistent knowledge base, and demonstrably improves over successive runs,"* judged on the **delta between first and last run.** That's your longitudinal story (`40 → 65 after documenting X`) promoted from footnote to centerpiece:
+The track judges the **delta between runs.** The honest, un-gameable version of that delta is a **regression across a real change**, not an improvement Linnaeus authored:
 
-1. **Run 1** — probes hit friction; Linnaeus builds an org knowledge graph + emits findings.
-2. **Remediate** — Linnaeus writes the missing CLAUDE.md / docstrings / runbooks *into the repo*.
-3. **Run 2** — same candle, **measurably lower friction** because the docs it wrote are now there.
-4. **That delta is the score they're judging.** The heatmap cooling off on run 2 is the visual.
+1. **Run 1** — the candle audits the org *before* the change; probes complete; baseline friction recorded.
+2. **The org changes on its own** — nxtyou goes to prod (real event). Nobody updates the billing logic to match.
+3. **Run 2** — same fixed candle re-audits; friction is **measurably higher** on the affected workflow because the org moved into a state its records no longer describe. **The heatmap heats up where the change eroded operability.**
+4. **That delta — the caught regression — is the score.** Linnaeus emits a typed recommendation (`Fix`/`Document`/`Connect`/`Grant`); *you* decide the remediation. The recommendation is output, not the delta's cause.
+
+Why this is stronger than "gets smarter": you **didn't author the change**, so the delta can't be teaching-to-the-test. It's a genuine measurement of the org, not of Linnaeus's memory.
 
 ## The one design rule that keeps it honest
 
-The measuring **candle stays fixed and memory-less** (same model/harness, no private context) — else you're measuring Linnaeus's memory, not the org. Improvement must be **externalized into the org's own artifacts**, not hoarded in Linnaeus's cache. That's what makes the recursion *real* (portable knowledge) instead of metric-gaming — and it lands squarely on Boris's "encode knowledge as infrastructure."
+The measuring **candle stays fixed and memory-less** (same model/harness, no private context) — so the **only variable between Run 1 and Run 2 is the org itself.** That's what makes the delta attributable to the change rather than to Linnaeus learning. Linnaeus doesn't fix the org to move the number (the change already did); it measures the drift and hands you a typed recommendation. Portable-knowledge / "encode as infrastructure" (Boris) is what the *recommendation* points toward — but the delta stands on its own without it.
 
 ## Free 30 points + $600 in prizes from one decision
 
@@ -62,13 +66,13 @@ That's **operability CI for the enterprise** — the same regression-gate frame,
 
 Why this is the strong version:
 - **Bounded + verifiable.** One concrete recent change, and *you are the ground truth*. The probe targets something checkable — "onboard a client end-to-end," or "a client hits an issue that now touches the new platform" — and it stalls at the exact undocumented spot the platform introduced. You confirm on stage: "yes, only I knew that." That's the credibility a whole-org audit can't get.
-- **Recursive-delta-shaped, on the org.** Probe stalls → Linnaeus writes the runbook/ownership/config note → re-probe passes. Same before/after structure you liked on the codebase, now on the genuinely-hard substrate.
+- **Recursive-delta-shaped, on the org.** ~~Probe stalls → Linnaeus writes the runbook/ownership/config note → re-probe passes.~~ **[SUPERSEDED — see top banner]** Corrected: **Run 1 (before the change) → the org changes for real → Run 2 (after) = regression caught.** The before/after structure you liked, now driven by the *real change* rather than by a Linnaeus-authored fix.
 - **Heartbeat-native, honestly.** Triggered by the org-change event (platform-to-prod), not a human clicking run. This is the real event-driven story, on the org.
 - **Not the 5-minute toy.** Nightly legacy-cleanup is exactly the trivial codebase agent you're worried about. Detecting that a *human org* got less operable from a real change, and localizing the *new* negative space — nobody ships that in 5 minutes.
 
 The practical hard part (solo, one weekend): *how does a probe "touch" an org?* Your org's substrate is your real digital surfaces — Drive, Gmail, the codebases, the platform configs — and you already have MCP access to most of them. A probe-agent attempts a real cross-surface workflow and stalls where the new platform's knowledge was never written down. Buildable, not abstract.
 
-Recommended demo shape: **one bounded probe** — *"reproduce/extend this week's work (the platform going to prod) from the org's records alone — what's missing?"* — it stalls on the undocumented platform glue, Linnaeus documents it, re-probe passes. That's your verifiable, org-level recursive delta.
+Recommended demo shape: **one bounded probe** — *"reproduce/extend this week's work (the platform going to prod) from the org's records alone — what's missing?"* — it stalls on the undocumented platform glue, Linnaeus documents it, re-probe passes. That's your verifiable, org-level recursive delta. *(⚠️ SUPERSEDED shape — see top banner: the delta is now Run 1 before / Run 2 after the change = the caught regression, not "document it → re-probe passes.")*
 
 Honest caveat: keep the **codebase as a 20-second calibration cameo**, not the hero — "here's the instrument, measured on something you can all read" — *then* turn it on the hard org thing. Codebase = calibration slide; org-change-delta = the demo.
 
@@ -109,16 +113,21 @@ User: Awesome, yes I would appreciate if you could walk me through that setup wh
 **Claude:** Will do. Once the research pins the exact serving path (raw vLLM vs. NemoClaw-routed), I'll hand you copy-paste quickstart commands — endpoint up, model loaded, `base_url` pointed, one smoke-test call to confirm it's live.
 
 ## 4. Ambition: event-driven + audit + recursive 2nd pass → **Go for it, but lock the critical path.**
+
+> **⚠️ SUPERSEDED shape (kept for record).** The critical path below is correct *except* step 2/3's direction: Run 2 is now a re-audit of the **changed org** showing **higher** friction (a caught regression), not a remediated repo showing lower friction. The "remediation writer" is not on the delta's critical path — remediation is a typed recommendation the candle emits *after* the delta is measured. Corrected path: **1) engine+instrumentation → 2) Run 1 baseline audit → 3) Run 2 re-audit of the changed org = the regression delta (non-negotiable) → 4) emit typed recommendation + event trigger.**
+
 Build in this order so scope can't sink the demo:
 1. **Probe engine + friction instrumentation** (the core — reused everywhere, see #8).
-2. **Run 1 audit + remediation writer** (finds friction, writes CLAUDE.md/docstrings/runbooks into a branch).
-3. **Run 2 delta** (fresh candle, measurably lower friction + the heatmap cooling off). **← this is the demo. Non-negotiable.**
-4. **Event-driven trigger** (operability CI — wake on PR/commit, dispatch a probe-run). **← the ambitious layer; the first thing to narrate-instead-of-automate if Sunday 11am gets tight.**
+2. **Run 1 audit** (baseline friction on the pre-change org state).
+3. **Run 2 delta** (fresh candle re-audits the changed org, measurably *higher* friction + the heatmap heating up where the change eroded operability). **← this is the demo. Non-negotiable.**
+4. **Emit typed recommendation + event-driven trigger** (operability CI — wake on the org-change event, dispatch the re-audit). **← the ambitious layer; the first thing to narrate-instead-of-automate if Sunday 11am gets tight.**
 Rule: if you run out of time, cut *down* from 4, never sacrifice 3. Protect the delta.
 
 User: Agree with this critical path.
 
 **Claude:** Locked. One update given your #1 pivot: step 3 (the delta) is now an *org-change* delta, not a codebase one — so "run 2" = re-probe the org surface after Linnaeus documents the new-platform glue. Same critical path, org substrate. It's still the last thing we defend.
+
+> **⚠️ SUPERSEDED (2026-07-18):** "run 2 = re-probe *after Linnaeus documents* the glue" is the old fix-and-improve shape. Corrected: **run 2 = re-probe the org *after the change itself* (nxtyou → prod)**, showing the regression. Linnaeus documenting the glue is a *recommendation it emits*, not what produces run 2. See the pivot banner at the top of this doc.
 
 ## 5. Solo ("we are legion") → **One human, many agents — lean into it; it reprices the bounties.**
 Per-member Brev bounties ($100/member: Nemotron, NemoClaw) are worth *less* solo — so the real money targets are the **$500 vLLM cash** and the **Antler dinner**, neither of which is per-member. Strategically: don't over-index on the $100 bounties. Upside: "one human orchestrating a legion of agents" is a *great* on-theme narrative and doubles as live proof of the operability thesis — you're literally running a company through agents. Multi-agent-supervised-by-one-operator also directly serves the Technical-Depth points.

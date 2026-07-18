@@ -28,7 +28,7 @@ User agreed.
 
 User agreed. 
 
-3. **The delta** — run 1 vs run 2, friction dropping. This is the money shot for the Recursive Intelligence track; guard it.
+3. **The delta** — run 1 vs run 2, friction **rising** (a caught regression across a real org change, e.g. nxtyou → prod). This is the money shot for the Recursive Intelligence track; guard it. *(Pivot 2026-07-18: the delta is a regression Linnaeus catches, not an improvement it authors.)*
 
 User agreed. 
 
@@ -42,12 +42,12 @@ User agreed.
 Great, let's just use one of the newer shad CN styling packages just so it doesn't look so AI generated. 
 
 **DB (Supabase, confirmed).** It's what makes the delta and longitudinal baseline real. Minimal schema:
-- `runs` (id, target, candle_model+quant+seed, started_at, mode=passive|capture)
+- `runs` (id, target, candle_model+quant+seed, started_at, mode=passive|capture, org_state=before|after-change)  ← the before/after pair is the regression delta
 - `probes` (id, category, universal|synthesized, instance_spec, cached_for_org)
 - `findings` (run_id, probe_id, status, friction_vector JSON, root_cause_tag, remediation_type)
-- `artifacts` (finding_id, remediation_type, content/target, provenance)  ← what capture mode writes
+- `artifacts` (finding_id, remediation_type, content/target, provenance)  ← the typed recommendations the candle emits (capture-mode authoring); a human decides whether to act
 - `surfaces` (the org's 7 surfaces + access status) — powers the org map
-This is also your longitudinal store: same probe across runs = the 40→65 line.
+This is also your longitudinal store: same probe across runs = the regression line (friction rose after the change).
 
 User agreed. 
 
@@ -71,7 +71,7 @@ User agreed.
 
 
 Two consequences worth locking:
-- **"Get it out of their head" ≠ transcribe.** The interview (capture stream two) captures the *what*, but the deliverable that actually removes the human from the loop is often the **Connect/Grant** — a wired integration or a granted permission, not a doc. So capture mode's output surface must emit **connection specs + permission requests + code stubs**, not only markdown. The re-probe tests whether the gap closed *regardless of remediation type* — that keeps the delta honest across all five.
+- **"Get it out of their head" ≠ transcribe.** The interview (capture stream two) captures the *what*, but the deliverable that actually removes the human from the loop is often the **Connect/Grant** — a wired integration or a granted permission, not a doc. So capture mode's output surface must emit **connection specs + permission requests + code stubs**, not only markdown. *(Pivot 2026-07-18: these are emitted recommendations a human decides on — not a self-closing loop, and not the delta source. The delta is the caught regression across a real change. An executed pure-code `Fix` can optionally be re-run to show closure.)*
 
 User: 100% agree and yes connection specs permission requests and stubs that can be shown in the video the visualizations obviously pretty out of scope to actually execute on these actual permission requests and connections for this hackathon. Agree?
 

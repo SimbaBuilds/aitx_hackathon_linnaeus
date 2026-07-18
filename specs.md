@@ -30,8 +30,8 @@
 
 - Modes (see capture_mode.md)
     - Passive mode (measure) — silent probe, clean friction score, uncontaminated baseline
-    - Capture mode — each finding becomes a specific interview question; human answers; agent writes the artifact (CLAUDE.md/docstring/doc); re-run of the same probe is the acceptance test
-    - Phases not a toggle: measure → capture → re-measure (asking mid-run contaminates the standard candle). This sequence is what produces the "40 → 65 after documenting X" delta
+    - Capture mode — each finding becomes a specific interview question; human answers; candle authors the typed recommendation (Document/Connect/Grant/Fix/Delete) for a human to decide. Capture = data-gathering + recommendation-authoring, NOT the delta source
+    - Phases not a toggle: measure → capture (asking mid-run contaminates the standard candle). The hero delta comes from re-auditing a CHANGED org (a caught regression), not from re-measuring after you filled a gap. Optional closure: an executed pure-code Fix can be re-run to show it closes — not the delta
     - Two capture streams: recoverable (journal/write-back, no human) vs unrecoverable (interview the human)
     - Inverse value curve: passive carries the codebase, capture carries the enterprise (mostly glue in heads → the interview IS the data-gathering)
     - Immediate-value / commercial angle: populated docs + org knowledge-map walk out of the session; no "fix it Monday" deferral
@@ -49,7 +49,7 @@
         - Product approximates it with cheap proxies: does the code compile, does the traced request actually connect, do N parallel agents converge (self-consistency)
     - The single number is a lossy rollup — be honest about it
         - The real deliverable is a per-probe friction VECTOR; the single "Operability: 61/100" is deliberately lossy marketing painted on top
-        - Value is relative/longitudinal, not absolute: "40 → 65 after documenting X" and "61 vs median 48" mean everything; "61" in isolation means almost nothing
+        - Value is relative/longitudinal, not absolute: "friction 22 → 61 after nxtyou shipped" (a caught regression across a real change) and "61 vs median 48" mean everything; "61" in isolation means almost nothing
         - Matches the two-mechanism split: comparability from the fixed probes, continuity from the cached probes
     - Size normalization: fix the instrument, not the org
         - Same model + same harness + same battery = the standard candle; normalize per-probe against the candle's baseline friction on a known-legible reference, not against org headcount

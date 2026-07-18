@@ -130,14 +130,14 @@ If every probe fails it looks rigged; if every probe succeeds there's nothing to
 
 Linnaeus runs in two modes that compose as phases, not a toggle.
 
-- **Passive mode (measure):** the silent probe finds the shaped hole and scores the friction. Clean, uncontaminated baseline. This is everything above.
-- **Capture mode:** each finding becomes a specific, answerable interview question — *"I couldn't tell whether `effective_until` was safe to add; nothing on record says why. Why?"* The human answers, the agent writes the artifact (CLAUDE.md, docstring, doc), and the re-run of the same probe is the acceptance test: did the capture make it pass?
+- **Passive mode (measure):** the silent probe finds the shaped hole and scores the friction. Clean, uncontaminated baseline. This is everything above — **and it's the mode that produces the hero delta**, by re-running across a real org change and catching the regression.
+- **Capture mode:** each finding becomes a specific, answerable question — *"I couldn't tell whether `effective_until` was safe to add; nothing on record says why. Why?"* The human answers, and the candle authors the **typed recommendation** (`Document`/`Connect`/`Grant`/`Fix`/`Delete`) — which the human then decides whether to act on. Capture is the audit's **data-gathering + recommendation-authoring** layer; it is *not* what generates the delta.
 
 Why it matters for the pitch:
 - **The stall authors the question.** Generic "document your knowledge" dies on the blank page; a probe stall is specific enough to answer in a sentence. The audit produces its own interview.
-- **Order is load-bearing.** Measure first (or you contaminate the standard candle by feeding it answers), *then* capture, *then* re-measure. That sequence is what produces "40 → 65 after documenting X."
+- **Order is load-bearing.** Measure first (or you contaminate the standard candle by feeding it answers), *then* capture. *(The delta itself comes from re-auditing a changed org — not from re-measuring after you filled a gap.)*
 - **It's the inverse value curve across the split:** passive mode carries the codebase (little negative space to interview about); capture mode carries the enterprise (mostly glue in heads, so the interview *is* the data-gathering).
-- **It moves the payoff into the room.** The silent score is the pitch; the populated docs and org knowledge-map you walk out with are the deliverable — no "fix it Monday" deferral.
+- **It moves the payoff into the room.** The silent score is the pitch; the populated docs, the typed recommendations, and the org knowledge-map you walk out with are the deliverable — the human still owns the decision to act, but leaves holding it, not a blank page.
 
 Framed to the thesis: capture mode *instruments the completion layer* — it catches what the human was supplying for free, at the exact moment the system fails without it.
 
@@ -147,7 +147,7 @@ Framed to the thesis: capture mode *instruments the completion layer* — it cat
 
 - **Score friction, not correctness.** Friction is mechanically observable from the run (completed/stalled/had-to-ask, seconds to first correct move, files opened before confident, retries, dead-ends, backtracks, hedging language). No answer key required. Correctness needs ground truth and doesn't port to orgs you don't know.
 - **Correctness as a gate, not the score.** Friction-only misses the *confident-wrong* run — low friction, wrong answer, the worst case. The own-system demo supplies that gate for free.
-- **The single number is a lossy rollup — say so.** The real deliverable is a per-probe friction *vector*; "Operability: 61/100" is deliberately lossy marketing on top. Value is relative and longitudinal — *"40 → 65 after documenting X,"* *"61 vs median 48"* — not the absolute.
+- **The single number is a lossy rollup — say so.** The real deliverable is a per-probe friction *vector*; "Operability: 61/100" is deliberately lossy marketing on top. Value is relative and longitudinal — *"friction 22 → 61 after nxtyou shipped"* (a caught regression), *"61 vs median 48"* — not the absolute.
 - **Normalize the instrument, not the org.** Same model + harness + battery = the standard candle; normalize per-probe against the candle's baseline on a known-legible reference, not against headcount.
 
 ---
@@ -170,7 +170,8 @@ The floor is genuinely useful independent of the outcome: even if the event is a
 - "Boris is describing the remediation. Linnaeus is the diagnosis that pairs with it — and it diagnoses itself."
 - "The friction that stops an agent is knowledge that lives in a head instead of in the system."
 - "Quality only shows up here when it costs you operability."
-- "Linnaeus prices the friction; it doesn't mandate the cleanup."
+- "Linnaeus prices the friction; it doesn't mandate the cleanup — you decide the fix."
 - "The complexity map predicted where the agent would stall. The probe confirmed it."
-- "The stall authors the interview question — the audit produces its own way to fix it."
-- "Measure, then capture, then re-measure. That sequence is the whole 40-to-65 story."
+- "The stall authors the interview question — the audit produces its own recommendation, and hands you the decision."
+- "You don't let a code change merge if it breaks the tests. Linnaeus catches the org change that breaks your operability."
+- "The delta isn't Linnaeus getting smarter — it's your org getting less operable, and Linnaeus being the only thing that noticed."

@@ -2,6 +2,8 @@
 
 *Working notes. Reasoning, tensions, dead ends. Final recommendation lives in `hackathon_fit_thoughts.md`.*
 
+> **⚠️ PIVOT (2026-07-18).** The "self-improving monitor / gets-smarter-each-run / friction drops run over run" framing in these notes is **superseded**. Linnaeus stays the **audit layer**; recursion = **re-auditing an org that changed on its own**, and the delta is a **caught regression** (friction *rises* when a real change erodes operability), not an improvement Linnaeus authored. Remediation is a typed recommendation the candle emits for a human to decide — no self-closing loop, no separate frontier author. The "gets-smarter vs standard-candle tension" section below is now **moot** (the pivot dissolves it) and is retained only as record. Current framing: `hackathon_fit_thoughts.md` (top banner) + `demo_org_change_delta.md`.
+
 ---
 
 ## The reframe the event forces
@@ -10,23 +12,23 @@ The whole event is built on **Claw Agents = heartbeat-driven, persistent, proact
 
 Linnaeus as currently written is a **one-shot audit** — drop probes, emit a friction report, done. That is *not* a Claw Agent. If pitched as-is it reads as "a batch analysis job," and the judges explicitly reward the loop.
 
-So the event forces the exact pivot Cameron's instinct already reached for: **Linnaeus as a continuous, self-improving operability monitor** — a heartbeat agent that re-probes on a cycle, accumulates a persistent map of the org, writes documentation back into the codebase, and proves the friction score drops run over run. Not a change of thesis — a change of *cadence*. Everything in the docs still holds; it just runs on a loop now.
+So the event forces the exact pivot Cameron's instinct reached for — but the honest form is **not** "self-improving monitor." It's **operability CI**: a heartbeat agent that **fires on a real org-change event and re-audits**, catching the operability *regression* the change introduced. Linnaeus doesn't write docs back to make its own score rise; it measures the drift a real change caused and emits a typed recommendation. Not a change of thesis — a change of *cadence*, plus an honest source for the delta (the org changed, not the instrument).
 
 ---
 
 ## Track-by-track fit
 
-### 1. Recursive Intelligence Track — STRONG. This is home.
+### 1. Recursive Intelligence Track — STRONG. This is home. (via *drift detection*)
 Their ask, verbatim: *"an agent that measurably gets smarter the more it runs… captures what it learns, compounds it into a persistent knowledge base or knowledge graph, and demonstrably improves at its task over successive runs."* Judged on **performance delta between first and last run**; bonus for a clear learning mechanism (knowledge graph, RAG-from-self-context).
 
-This is Linnaeus's longitudinal story promoted from footnote to centerpiece. The docs already had *"40 → 65 after documenting X"* and the fixed-vs-cached two-mechanism split — that was framed as a product-validity concern. Here it becomes the **demo's spine**:
+We satisfy the **delta-between-runs** criterion honestly — but the delta is a **caught regression across a real org change**, not the instrument getting smarter. The demo's spine:
 
-- **Run 1:** probes hit friction, Linnaeus builds an org knowledge base (ownership map, live-vs-legacy map, where-things-live graph) and emits findings.
-- **Remediation:** Linnaeus writes the missing artifacts — CLAUDE.md, docstrings with retention+removal conditions, skills, a runbook.
-- **Run 2:** same candle probes, friction is measurably lower — because the docs it wrote are now in the repo.
-- **The delta IS the score they're judging.**
+- **Run 1:** the candle audits the org *before* the change; probes complete; Linnaeus builds an org knowledge base (ownership map, live-vs-legacy map, where-things-live graph) and records baseline friction.
+- **The org changes on its own:** nxtyou → prod (real event); nobody updates the billing logic to match.
+- **Run 2:** same fixed candle re-audits; friction is measurably **higher** on the affected workflow — the org moved into a state its records no longer describe.
+- **The delta — the caught regression — IS the score.** Linnaeus then *emits* a typed recommendation (`Fix`/`Document`/…); a human decides. The recommendation is output, not the delta's cause.
 
-The knowledge graph / org map = the "clear learning mechanism" bonus. Clean fit, no forcing.
+The persistent org map across runs = the "clear learning mechanism / knowledge base" bonus (Linnaeus's *private* map may accumulate; the measuring candle stays memory-less). Honest fit — we're not claiming self-improvement we don't have.
 
 ### 2. Red Hat Live Data Track — MEDIUM. Available via Juniper, not core.
 Ask: an agent powered by real-time streaming data, freshness doing real work in the loop. Cameron already has a live feed — **Juniper monitoring the business phone (Quo messages) → dispatching Claude Code.** That's a genuine live source triggering real work. And a codebase's **commit stream** is itself a live feed the operability monitor could react to (re-probe the strata that just changed).
@@ -59,6 +61,8 @@ The "why" answer writes itself and it's *principled*, not retrofitted: an operab
 
 ## The tension that has to be handled carefully (and resolves beautifully)
 
+> **⚠️ MOOT after the 2026-07-18 pivot.** This entire section reconciles "gets smarter each run" with the standard candle. The pivot removes the premise: Linnaeus no longer improves the org across runs, so there's nothing to reconcile — the candle re-audits a *changed org* and the delta is a regression. Retained only as record of why the standard-candle purity matters (it still does: the candle stays memory-less so the delta is attributable to the org, not the instrument).
+
 "Gets smarter each run" collides head-on with **standard candle** (fixed instrument) if handled naively. If Linnaeus caches org knowledge privately and feeds it to the probe, the probe gets easier over time **because Linnaeus is spoon-feeding it — not because the org improved.** That corrupts the measurement: you'd be measuring Linnaeus's memory, not the org's operability.
 
 Resolution, and it's a *sharpening* not a patch:
@@ -74,10 +78,10 @@ Nuance: Linnaeus's *private* org map (the knowledge graph) is allowed to grow �
 
 ## What this does to the existing demo plan
 
-- The "run it once on your own system (NxtYou/DocuSpa)" plan still holds — it just needs a **second run after remediation** to show the delta. Fully doable in a weekend on Cameron's own repo.
-- The "pick 3–4 probes that discriminate" spread still holds; now each also has a **before/after**.
-- The pre-scan → heatmap → probe reveal stays — and gains a **third frame: the heatmap cooling off on run 2** where docs were added. That's a killer visual for "measurably gets smarter."
-- Scope risk goes UP: heartbeat + persistence + remediation-writing + two runs is more than a one-shot audit. Must timebox hard. Minimum viable recursive demo = 2 runs + written artifacts + a friction-delta chart. Everything else is gravy.
+- The "run it on your own system (NxtYou/DocuSpa)" plan still holds — it just needs a **second run across a real change** (nxtyou → prod) to show the regression delta. Fully doable in a weekend on Cameron's own org.
+- The "pick 3–4 probes that discriminate" spread still holds; now the hero probe also has a **before/after across the change**.
+- The pre-scan → heatmap → probe reveal stays — and gains a **third frame: the heatmap heating UP on run 2** where the change eroded operability. That's a killer visual for "operability CI caught a regression."
+- Scope risk goes UP: heartbeat + two runs + emitting recommendations is more than a one-shot audit. Must timebox hard. Minimum viable demo = 2 runs (before/after the change) + a friction-delta chart showing the regression + one emitted typed recommendation. Everything else is gravy.
 
 ---
 

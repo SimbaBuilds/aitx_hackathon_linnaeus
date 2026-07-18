@@ -136,7 +136,7 @@ Per the core thesis, the friction log *is* the audit. So the score is built from
 
 **Correctness as a gate, not the score.** Friction-only rewards the *confident-wrong* run — agent breezes through, low friction, wrong classification. So keep a coarse correctness check to catch confidence-without-correctness. On the demo (NxtYou/DocuSpa) you supply that gate for free because you lived it; in the product, approximate it with proxies (does it compile, does the trace connect, do parallel agents converge). Map the gate result onto the three failure modes above — a low-friction run that trips the false-positive mode is the highest-severity outcome precisely *because* it was confident.
 
-**Rollup.** The per-probe output is a friction vector; any single legacy-legibility number is a deliberately lossy rollup. Its value is relative/longitudinal — "the legacy paths went from unmarked to documented-with-removal-condition and the classification friction dropped" — not an absolute grade.
+**Rollup.** The per-probe output is a friction vector; any single legacy-legibility number is a deliberately lossy rollup. Its value is relative/longitudinal — the *change* across runs — e.g. "a refactor left a new legacy path unmarked and the classification friction rose" (a caught regression), or the reverse if the org documented it. The instrument reports the drift either direction; it doesn't author the improvement. Not an absolute grade.
 
 ## Caveat for demo selection
 
