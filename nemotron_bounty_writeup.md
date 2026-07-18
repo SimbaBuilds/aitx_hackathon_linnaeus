@@ -4,6 +4,8 @@
 
 *(The bounty requires "a short written explanation covering what Nemotron is doing in your agent, why it matters, and how you're maximizing its capabilities." This is that explanation.)*
 
+> **Note:** Organization and product names in this document are anonymized — the audited system is referred to as the "Telehealth Monorepo," and its client lines as "medspa" and "D2C." Linnaeus was run against a real production system; the identifiers are de-identified for public submission. All measured numbers (friction scores, the +53.7 delta, timings) are from real Nemotron-measured runs.
+
 ---
 
 ## What Nemotron does in our agent
@@ -29,4 +31,4 @@ There's also a "small-model punch" story we're proud of: Nemotron-3-Nano-30B-A3B
 
 ## The demonstrated result
 
-Pointed at a real production system (SKMD), Linnaeus caught a genuine operability regression: after the org shipped a new direct-to-consumer billing path that the monthly-invoice code never covered, the same Nemotron candle went from **completing** the billing probe (friction 16.8) to **stalling** on it (friction 70.5) — a **+53.7** regression, measured entirely on the self-hosted Nemotron endpoint (`seed=42`, `temp=0`, reproducible). Four other universal probes ran on the same candle in the same battery; the honest board shows SKMD is legible on 4 of 5 axes, with the billing cell as the one place the org change drew blood. Linnaeus **caught** the regression; it did not author it — which is the whole point.
+Pointed at a real production system (the "Telehealth Monorepo"), Linnaeus caught a genuine operability regression: after the org shipped a new direct-to-consumer (D2C) billing path that the monthly-invoice code never covered, the same Nemotron candle went from **completing** the billing probe (friction 16.8) to **stalling** on it (friction 70.5) — a **+53.7** regression, measured entirely on the self-hosted Nemotron endpoint (`seed=42`, `temp=0`, reproducible). Four other universal probes ran on the same candle in the same battery; the honest board shows the system is legible on 4 of 5 axes, with the billing cell as the one place the org change drew blood. Linnaeus **caught** the regression; it did not author it — which is the whole point.
