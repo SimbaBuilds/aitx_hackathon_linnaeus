@@ -52,9 +52,10 @@ Then **Access** tab → expose `8000` → send me the URL. (NVFP4: swap the tag 
 
 </details>
 
-### 2. Dev-candle key (M1 — unblocks the engine before the GPU is up)
-The engine develops against **Claude Opus 4.8** through the same seam, then swaps to your vLLM endpoint for measured runs.
-- **`ANTHROPIC_API_KEY`** → `.env.local`. (Reuse an existing key from another project if you have one — specs.md notes you can.)
+### 2. Dev-candle key (M1 — cheap model for engine dev) — ✅ key provided
+The engine develops against **Claude Sonnet 5** (`claude-sonnet-5`; revised 2026-07-18, was Opus 4.8 — ~2.5× cheaper, near-Opus tool-use) through the same seam, then swaps to the vLLM Nemotron endpoint for the **measured** runs.
+- **`ANTHROPIC_API_KEY`** is in `.env.local`. *(One-time: rotate it if it was ever committed.)*
+- **⚠️ The headline delta must be measured on Nemotron, not Sonnet** — Sonnet is dev-only. See M1 guardrail in `implementation_plan.md`.
 
 ### 3. Supabase project (WS-D — unblocks persistence) — ✅ DONE (I did this via CLI)
 - Project **Linnaeus** (ref `jdiidxgtxxbngatepcfl`, us-east-1, in your **personal** org "Cameron Hightower Personal Supabase" — free plan). Dashboard: https://supabase.com/dashboard/project/jdiidxgtxxbngatepcfl
