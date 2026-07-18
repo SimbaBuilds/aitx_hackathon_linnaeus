@@ -1,0 +1,97 @@
+{
+  "target": "SKMD",
+  "candle": {
+    "model": "nemotron",
+    "quant": null,
+    "seed": 42,
+    "temp": 0
+  },
+  "ran_at": "2026-07-18T20:18:43.922Z",
+  "findings": [
+    {
+      "run_id": "run_SKMD_auth-boundary_mrqt2jtdlv81cv",
+      "probe_id": "auth-boundary",
+      "status": "completed",
+      "friction_vector": {
+        "completed": true,
+        "seconds_to_first_correct_move": 3.273,
+        "surfaces_opened": 1,
+        "tool_calls": 6,
+        "retries": 0,
+        "dead_ends": 0,
+        "guessed": false,
+        "hedging_count": 0
+      },
+      "root_cause_tag": "none",
+      "remediation": null
+    },
+    {
+      "run_id": "run_SKMD_designer-contribute_mrqt33wz8qnxc7",
+      "probe_id": "designer-contribute",
+      "status": "completed",
+      "friction_vector": {
+        "completed": true,
+        "seconds_to_first_correct_move": 1.069,
+        "surfaces_opened": 1,
+        "tool_calls": 19,
+        "retries": 0,
+        "dead_ends": 3,
+        "guessed": false,
+        "hedging_count": 0
+      },
+      "root_cause_tag": "none",
+      "remediation": null
+    },
+    {
+      "run_id": "run_SKMD_live-vs-legacy-pdf_mrqt503xci70gk",
+      "probe_id": "live-vs-legacy-pdf",
+      "status": "completed",
+      "friction_vector": {
+        "completed": true,
+        "seconds_to_first_correct_move": 2.728,
+        "surfaces_opened": 1,
+        "tool_calls": 9,
+        "retries": 0,
+        "dead_ends": 2,
+        "guessed": false,
+        "hedging_count": 0
+      },
+      "root_cause_tag": "none",
+      "remediation": null
+    },
+    {
+      "run_id": "run_SKMD_onboard-client_mrqt5iv4h1r5rm",
+      "probe_id": "onboard-client",
+      "status": "completed",
+      "friction_vector": {
+        "completed": true,
+        "seconds_to_first_correct_move": 2.672,
+        "surfaces_opened": 2,
+        "tool_calls": 14,
+        "retries": 0,
+        "dead_ends": 1,
+        "guessed": false,
+        "hedging_count": 1
+      },
+      "root_cause_tag": "no-runbook",
+      "remediation": null
+    },
+    {
+      "run_id": "run_SKMD_billing-regression_mrqt7dzq5isg6k",
+      "probe_id": "billing-regression",
+      "status": "failed_to_author",
+      "friction_vector": {
+        "completed": false,
+        "seconds_to_first_correct_move": null,
+        "surfaces_opened": 2,
+        "tool_calls": 8,
+        "retries": 0,
+        "dead_ends": 8,
+        "guessed": true,
+        "hedging_count": 0
+      },
+      "root_cause_tag": "missing-doc",
+      "remediation": null
+    }
+  ]
+}
