@@ -14,6 +14,7 @@ import { readFileSync, existsSync, writeFileSync, mkdirSync } from "fs";
 import { join } from "path";
 import { createCandle } from "@/lib/candle";
 import { allSurfaceTools, surfaceStatus } from "@/surfaces";
+import { ensureGoogleToken } from "@/surfaces/google-auth";
 import { runProbe } from "@/engine";
 import { frictionScore } from "@/lib/instrumentation";
 import type { Finding, Probe, Run, Remediation } from "@/lib/contracts";
@@ -60,6 +61,14 @@ async function main(): Promise<void> {
   loadEnvLocal();
   process.env.REPO_PATH =
     process.env.REPO_PATH ?? "/Users/cameronhightower/Software_Projects/SKMD";
+
+  // Best-effort Google auto-refresh (billing is repo-only, so non-fatal here —
+  // keeps Gmail/Drive warm if a probe reaches out).
+  try {
+    await ensureGoogleToken({ verbose: true });
+  } catch (e) {
+    console.warn(`  google token refresh skipped: ${(e as Error).message}`);
+  }
 
   const candle = createCandle();
   if (!candle.isProd && !process.env.ANTHROPIC_API_KEY) {

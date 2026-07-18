@@ -13,6 +13,7 @@ import { join } from "path";
 import { createCandle } from "@/lib/candle";
 import { allSurfaceTools, surfaceStatus } from "@/surfaces";
 import { synthesizeProbes } from "@/engine";
+import { ensureGoogleToken } from "@/surfaces/google-auth";
 
 function loadEnvLocal(): void {
   const path = join(process.cwd(), ".env.local");
@@ -48,6 +49,13 @@ async function main(): Promise<void> {
   if (!process.env.ANTHROPIC_API_KEY) {
     console.error("✗ ANTHROPIC_API_KEY required for the synthesis (frontier) model.");
     process.exit(1);
+  }
+
+  // Auto-refresh Google creds so synthesis can explore Gmail/Drive (best-effort).
+  try {
+    await ensureGoogleToken({ verbose: true });
+  } catch (e) {
+    console.warn(`  google token refresh skipped: ${(e as Error).message}`);
   }
 
   const candle = createCandle();

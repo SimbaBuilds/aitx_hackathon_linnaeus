@@ -1,0 +1,458 @@
+{
+  "_note": "Synthesized org-level board — Nemotron-measured single-shot snapshots of the Frontier-Factor proposals. Feeds heatmap + findings board (no deltas). fixtures/demo.json (the money-shot delta) is untouched.",
+  "target": "SKMD",
+  "candle": {
+    "model": "nemotron",
+    "quant": null,
+    "seed": 42,
+    "temp": 0
+  },
+  "generated": "2026-07-18T22:50:56.439Z",
+  "surfaces": [
+    {
+      "id": "repo",
+      "kind": "repo",
+      "access_status": "connected"
+    },
+    {
+      "id": "gmail",
+      "kind": "gmail",
+      "access_status": "connected"
+    },
+    {
+      "id": "drive",
+      "kind": "drive",
+      "access_status": "connected"
+    },
+    {
+      "id": "notion",
+      "kind": "notion",
+      "access_status": "connected"
+    },
+    {
+      "id": "rds",
+      "kind": "rds",
+      "access_status": "unavailable"
+    }
+  ],
+  "findings": [
+    {
+      "run_id": "run_SKMD_synth-ownership-map_mrqyi5tn59yo47",
+      "probe_id": "synth-ownership-map",
+      "status": "stalled",
+      "friction_vector": {
+        "completed": false,
+        "seconds_to_first_correct_move": 6.558,
+        "surfaces_opened": 2,
+        "tool_calls": 18,
+        "retries": 0,
+        "dead_ends": 1,
+        "guessed": false,
+        "hedging_count": 0
+      },
+      "root_cause_tag": "no-owner",
+      "remediation": null,
+      "_derived": {
+        "friction_score": 74,
+        "surfaces_hit": [
+          "repo",
+          "gmail"
+        ],
+        "tool_calls_by_surface": {
+          "repo": 17,
+          "gmail": 1
+        }
+      }
+    },
+    {
+      "run_id": "run_SKMD_synth-billing-rollout_mrqyley6ekmagv",
+      "probe_id": "synth-billing-rollout",
+      "status": "stalled",
+      "friction_vector": {
+        "completed": false,
+        "seconds_to_first_correct_move": 6.6,
+        "surfaces_opened": 3,
+        "tool_calls": 8,
+        "retries": 0,
+        "dead_ends": 5,
+        "guessed": false,
+        "hedging_count": 0
+      },
+      "root_cause_tag": "no-owner",
+      "remediation": null,
+      "_derived": {
+        "friction_score": 86.5,
+        "surfaces_hit": [
+          "gmail",
+          "repo",
+          "notion"
+        ],
+        "tool_calls_by_surface": {
+          "gmail": 5,
+          "repo": 2,
+          "notion": 1
+        }
+      }
+    },
+    {
+      "run_id": "run_SKMD_synth-nxtyou-wiring_mrqym1rmruid3m",
+      "probe_id": "synth-nxtyou-wiring",
+      "status": "stalled",
+      "friction_vector": {
+        "completed": false,
+        "seconds_to_first_correct_move": 1.652,
+        "surfaces_opened": 1,
+        "tool_calls": 20,
+        "retries": 0,
+        "dead_ends": 4,
+        "guessed": false,
+        "hedging_count": 0
+      },
+      "root_cause_tag": "dead-code",
+      "remediation": null,
+      "_derived": {
+        "friction_score": 82.5,
+        "surfaces_hit": [
+          "repo"
+        ],
+        "tool_calls_by_surface": {
+          "repo": 20
+        }
+      }
+    }
+  ],
+  "call_log": [
+    {
+      "probe": "synth-ownership-map",
+      "tool": "repo_list",
+      "surface": "repo",
+      "ok": true,
+      "query": "."
+    },
+    {
+      "probe": "synth-ownership-map",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "standing order"
+    },
+    {
+      "probe": "synth-ownership-map",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": false,
+      "query": "CODEOWNERS",
+      "note": "no matches for \"CODEOWNERS\""
+    },
+    {
+      "probe": "synth-ownership-map",
+      "tool": "gmail_search",
+      "surface": "gmail",
+      "ok": true,
+      "query": "medical director"
+    },
+    {
+      "probe": "synth-ownership-map",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "MEDICAL DIRECTOR"
+    },
+    {
+      "probe": "synth-ownership-map",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "Heather"
+    },
+    {
+      "probe": "synth-ownership-map",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "approval"
+    },
+    {
+      "probe": "synth-ownership-map",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "OWNERS"
+    },
+    {
+      "probe": "synth-ownership-map",
+      "tool": "repo_list",
+      "surface": "repo",
+      "ok": true,
+      "query": "docs"
+    },
+    {
+      "probe": "synth-ownership-map",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "Tony"
+    },
+    {
+      "probe": "synth-ownership-map",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "Medical Director"
+    },
+    {
+      "probe": "synth-ownership-map",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "approve"
+    },
+    {
+      "probe": "synth-ownership-map",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "stacking rules"
+    },
+    {
+      "probe": "synth-ownership-map",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "sign-off"
+    },
+    {
+      "probe": "synth-ownership-map",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "Dr. Sunil Kurup"
+    },
+    {
+      "probe": "synth-ownership-map",
+      "tool": "repo_read",
+      "surface": "repo",
+      "ok": true,
+      "query": "implementation_plans/archive/protocols_and_standing_orders.md"
+    },
+    {
+      "probe": "synth-ownership-map",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "review"
+    },
+    {
+      "probe": "synth-ownership-map",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "Medical Director:"
+    },
+    {
+      "probe": "synth-billing-rollout",
+      "tool": "gmail_search",
+      "surface": "gmail",
+      "ok": false,
+      "query": "weekly batched billing",
+      "note": "empty result — no mail matches \"weekly batched billing\""
+    },
+    {
+      "probe": "synth-billing-rollout",
+      "tool": "gmail_search",
+      "surface": "gmail",
+      "ok": true,
+      "query": "chronic decline"
+    },
+    {
+      "probe": "synth-billing-rollout",
+      "tool": "gmail_search",
+      "surface": "gmail",
+      "ok": false,
+      "query": "batched billing",
+      "note": "empty result — no mail matches \"batched billing\""
+    },
+    {
+      "probe": "synth-billing-rollout",
+      "tool": "gmail_search",
+      "surface": "gmail",
+      "ok": false,
+      "query": "\"chronic decline\" \"weekly\"",
+      "note": "empty result — no mail matches \"\"chronic decline\" \"weekly\"\""
+    },
+    {
+      "probe": "synth-billing-rollout",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "medspa"
+    },
+    {
+      "probe": "synth-billing-rollout",
+      "tool": "gmail_search",
+      "surface": "gmail",
+      "ok": true,
+      "query": "SKMD Wellness"
+    },
+    {
+      "probe": "synth-billing-rollout",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": false,
+      "query": "weekly batched",
+      "note": "no matches for \"weekly batched\""
+    },
+    {
+      "probe": "synth-billing-rollout",
+      "tool": "notion_query_tasks",
+      "surface": "notion",
+      "ok": false,
+      "query": "weekly",
+      "note": "notion query failed: HTTP 404"
+    },
+    {
+      "probe": "synth-nxtyou-wiring",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "is_nxtyou_provider"
+    },
+    {
+      "probe": "synth-nxtyou-wiring",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "PUT /api/v1/nxtyou/admin"
+    },
+    {
+      "probe": "synth-nxtyou-wiring",
+      "tool": "repo_read",
+      "surface": "repo",
+      "ok": true,
+      "query": "nxtyou_njs/lib/api/admin.ts"
+    },
+    {
+      "probe": "synth-nxtyou-wiring",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "PUT /api/v1/nxtyou/admin/providers"
+    },
+    {
+      "probe": "synth-nxtyou-wiring",
+      "tool": "repo_list",
+      "surface": "repo",
+      "ok": false,
+      "query": "nxtyou_njs/app/(admin)/admin/providers",
+      "note": "directory not found: nxtyou_njs/app/(admin)/admin/providers"
+    },
+    {
+      "probe": "synth-nxtyou-wiring",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": false,
+      "query": "nxtyou-admin/providers",
+      "note": "no matches for \"nxtyou-admin/providers\""
+    },
+    {
+      "probe": "synth-nxtyou-wiring",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "nxtyou-access"
+    },
+    {
+      "probe": "synth-nxtyou-wiring",
+      "tool": "repo_read",
+      "surface": "repo",
+      "ok": true,
+      "query": "skmd_fastapi/app/endpoints/nxtyou/admin.py"
+    },
+    {
+      "probe": "synth-nxtyou-wiring",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": false,
+      "query": "set_nxtyou_access",
+      "note": "no matches for \"set_nxtyou_access\""
+    },
+    {
+      "probe": "synth-nxtyou-wiring",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "nxtyou_access"
+    },
+    {
+      "probe": "synth-nxtyou-wiring",
+      "tool": "repo_read",
+      "surface": "repo",
+      "ok": true,
+      "query": "skmd_fastapi/app/endpoints/nxtyou/admin.py"
+    },
+    {
+      "probe": "synth-nxtyou-wiring",
+      "tool": "repo_read",
+      "surface": "repo",
+      "ok": true,
+      "query": "skmd_fastapi/app/endpoints/nxtyou/admin.py"
+    },
+    {
+      "probe": "synth-nxtyou-wiring",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "async def set_provider_nxtyou_access"
+    },
+    {
+      "probe": "synth-nxtyou-wiring",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "is_nxtyou_provider"
+    },
+    {
+      "probe": "synth-nxtyou-wiring",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "set_provider_nxtyou_access"
+    },
+    {
+      "probe": "synth-nxtyou-wiring",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "async def set_provider_nxtyou_access"
+    },
+    {
+      "probe": "synth-nxtyou-wiring",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "is_nxtyou_provider ="
+    },
+    {
+      "probe": "synth-nxtyou-wiring",
+      "tool": "repo_read",
+      "surface": "repo",
+      "ok": true,
+      "query": "skmd_fastapi/app/endpoints/nxtyou/admin.py"
+    },
+    {
+      "probe": "synth-nxtyou-wiring",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "async def set_provider_nxtyou_access"
+    },
+    {
+      "probe": "synth-nxtyou-wiring",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": false,
+      "query": "async def set_provider_nxtyou_access(.*)",
+      "note": "no matches for \"async def set_provider_nxtyou_access(.*)\""
+    }
+  ]
+}

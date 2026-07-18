@@ -169,6 +169,137 @@ const billingCoverage: ProbeDefinition = {
   completedTag: "none",
 };
 
+// ── Synthesized org-level board (measurement of Frontier-Factor proposals) ────
+// These three were PROPOSED by the synthesis pass (results/synthesized_probes_*.md)
+// grounded in SKMD's repo + mailbox. This is the MEASUREMENT half: Nemotron runs
+// them as single-shot snapshots (no before/after) → the heatmap + findings board.
+// Each ends in a STRUCTURED VERDICT line (the billing-coverage pattern Nemotron
+// handled cleanly) so an honest read of the evidence — not keyword luck — decides
+// completed vs. stalled. Instances are baked (kind: universal) since synthesis
+// already authored them; no runtime authoring gate.
+//
+// TWO are surface-forcing (unanswerable from the repo alone → the candle MUST
+// open Gmail to make progress), ONE is a repo-only contrast.
+
+// #8 — Sign-off ownership for a clinical/protocol change. The authority (Tony /
+// Dr. Kurup) exists only in ad-hoc email + request*.md, never in a committed
+// CODEOWNERS/OWNERS record → the honest verdict is UNDOCUMENTED → stall/no-owner.
+// Surface-forcing: the name only surfaces if the candle searches Gmail.
+const synthOwnershipMap: ProbeDefinition = {
+  id: "synth-ownership-map",
+  category: "no-owner-clinical-signoff",
+  kind: "universal",
+  instanceSpec: null,
+  systemPrompt:
+    "You must identify the AUTHORITATIVE sign-off owner for a clinical/protocol " +
+    "change in this org. Search the repo (look for CODEOWNERS, OWNERS, docs/, any " +
+    "committed ownership record) AND the org email — decision authority in this org " +
+    "often lives only in email. A person counts as a COMMITTED owner ONLY if a " +
+    "version-controlled file names them as the approver; a name found only in email " +
+    "or an ad-hoc request markdown does NOT count as committed ownership. In THIS org " +
+    "the approving authority is named only in email, never in the repo, so you MUST " +
+    "run at least one gmail_search (e.g. for the medical director, standing orders, or " +
+    "protocol/pricing approver) BEFORE you may answer UNDOCUMENTED — do not conclude " +
+    "from the repo alone. Finding the name in email STILL counts as UNDOCUMENTED (email " +
+    "is not a committed ownership record), but you must actually look. Finish your " +
+    "final message with EXACTLY one line: 'OWNER: <name> — source: <committed file " +
+    "path>' if a committed record establishes the approver, or 'OWNER: UNDOCUMENTED — " +
+    "<where the name actually lives>' otherwise.",
+  userPrompt: () =>
+    "Who must review/approve a change to the clinical protocol / contraindication & " +
+    "stacking rules (e.g. a new standing order)? Name the sign-off authority and cite " +
+    "the committed source that establishes their authority.",
+  reachedCheckpoint: (ctx) =>
+    okMatch(ctx, /codeowners|owner|approve|sign[- ]?off|protocol|standing order|medical director|kurup/),
+  didProbeSucceed: (ctx) => {
+    const verdict =
+      ctx.messages
+        .filter((m) => m.role === "assistant")
+        .map((m) => m.content ?? "")
+        .join("\n")
+        .match(/OWNER:.*/i)?.[0] ?? "";
+    if (!verdict || /OWNER:\s*UNDOCUMENTED/i.test(verdict)) return false;
+    // A name is only a COMPLETION if its cited source is a genuine committed
+    // ownership record — NOT email, and NOT an ad-hoc request*.md (both explicitly
+    // excluded by the probe definition). No such record exists in this org, so an
+    // honest verdict stalls → no-owner; the Gmail search still happened (the journey).
+    const committedRecord = /codeowners|owners\.(md|txt|yml|yaml)|ownership\b|governance/i.test(verdict);
+    const tribalSource = /email|gmail|thread|inbox|\bmail\b|request\d|ad[- ]?hoc/i.test(verdict);
+    return committedRecord && !tribalSource;
+  },
+  failureTag: "no-owner",
+  completedTag: "none",
+};
+
+// #2 — Fleet-wide rollout of the weekly batched-billing fix for chronic Stripe
+// decliners. A data-backed recommendation exists; a one-off manual fix was applied
+// to two clinics via email — but no owned, tracked rollout exists → UNOWNED →
+// stall/no-owner. Surface-forcing: the only evidence of the decision is a Gmail thread.
+const synthBillingRollout: ProbeDefinition = {
+  id: "synth-billing-rollout",
+  category: "no-owner-billing-rollout",
+  kind: "universal",
+  instanceSpec: null,
+  systemPrompt:
+    "You are rolling out a known billing fix fleet-wide. A data-backed recommendation " +
+    "exists to switch chronic Stripe-decline clinics to the weekly batched-billing path " +
+    "(organizations.payment_timing = 'weekly'). Determine WHO owns the fleet-wide rollout " +
+    "and whether a TRACKED task/ticket exists for it — search the repo (implementation_" +
+    "plans/, temp_docs/) AND the org email. The only record of this rollout decision in " +
+    "THIS org is an email thread, so you MUST run at least one gmail_search (e.g. for the " +
+    "billing/suspension discussion or the affected clinic names) BEFORE you may answer " +
+    "UNOWNED — do not conclude from the repo alone. An ad-hoc manual fix applied to a couple " +
+    "of named clinics via email does NOT count as an owned, tracked rollout. Finish your " +
+    "final message with EXACTLY one line: 'ROLLOUT: OWNED — <owner or ticket/plan>' if an " +
+    "owned tracked rollout exists, or 'ROLLOUT: UNOWNED — <what exists instead>' otherwise.",
+  userPrompt: () =>
+    "Switch all chronic-decline medspa clinics to the weekly batched-billing path. Who " +
+    "owns this fleet-wide rollout and where is it tracked?",
+  reachedCheckpoint: (ctx) =>
+    okMatch(ctx, /payment_timing|batched|weekly|decline|rollout|suspension|thrive|snow/),
+  didProbeSucceed: (ctx) => {
+    const text = ctx.messages
+      .filter((m) => m.role === "assistant")
+      .map((m) => m.content ?? "")
+      .join("\n");
+    return /ROLLOUT:\s*OWNED/i.test(text) && !/ROLLOUT:\s*UNOWNED/i.test(text);
+  },
+  failureTag: "no-owner",
+  completedTag: "none",
+};
+
+// #4 — nxtyou provider flag: schema + query support exist, but nothing SETS the
+// flag and the queue code doesn't branch on it → half-wired feature → GAP →
+// stall/dead-code. Repo-only CONTRAST (so the board isn't all-email).
+const synthNxtyouWiring: ProbeDefinition = {
+  id: "synth-nxtyou-wiring",
+  category: "dead-code-nxtyou-flag",
+  kind: "universal",
+  instanceSpec: null,
+  systemPrompt:
+    "Determine whether a feature is fully wired end-to-end. The column " +
+    "users.is_nxtyou_provider exists in the schema and find_available_providers already " +
+    "filters on it. Verify there is an actual admin toggle or API endpoint that SETS the " +
+    "flag, AND that the patient waiting-queue code branches on it. Trace the code with " +
+    "targeted searches; do not assume it works because the column exists. Finish your " +
+    "final message with EXACTLY one line: 'WIRING: COMPLETE — <the endpoint/UI that sets " +
+    "the flag>' if a reachable path sets it, or 'WIRING: GAP — <what is missing>' otherwise.",
+  userPrompt: () =>
+    "Turn on NxtYou provider access for a provider so they start seeing NxtYou patients " +
+    "in their queue. Find the admin toggle or API endpoint that sets users.is_nxtyou_provider.",
+  reachedCheckpoint: (ctx) =>
+    okMatch(ctx, /is_nxtyou_provider|find_available_providers|nxtyou|provider.?portal|on_demand/),
+  didProbeSucceed: (ctx) => {
+    const text = ctx.messages
+      .filter((m) => m.role === "assistant")
+      .map((m) => m.content ?? "")
+      .join("\n");
+    return /WIRING:\s*COMPLETE/i.test(text) && !/WIRING:\s*GAP/i.test(text);
+  },
+  failureTag: "dead-code",
+  completedTag: "none",
+};
+
 export const PROBE_REGISTRY: Record<string, ProbeDefinition> = {
   [authBoundary.id]: authBoundary,
   [designerContribute.id]: designerContribute,
@@ -176,7 +307,17 @@ export const PROBE_REGISTRY: Record<string, ProbeDefinition> = {
   [onboardClient.id]: onboardClient,
   [billingRegression.id]: billingRegression,
   [billingCoverage.id]: billingCoverage,
+  [synthOwnershipMap.id]: synthOwnershipMap,
+  [synthBillingRollout.id]: synthBillingRollout,
+  [synthNxtyouWiring.id]: synthNxtyouWiring,
 };
+
+/** The synthesized org-level board: 2 surface-forcing (no-owner) + 1 repo contrast. */
+export const SYNTH_BOARD_IDS: string[] = [
+  synthOwnershipMap.id,
+  synthBillingRollout.id,
+  synthNxtyouWiring.id,
+];
 
 /** The default hackathon battery order (4 universal + 1 synthesized). */
 export const BATTERY_IDS: string[] = [

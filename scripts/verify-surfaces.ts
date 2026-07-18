@@ -4,6 +4,7 @@
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 import { allSurfaceTools, surfaceStatus } from "@/surfaces";
+import { ensureGoogleToken } from "@/surfaces/google-auth";
 
 function loadEnvLocal(): void {
   const path = join(process.cwd(), ".env.local");
@@ -48,6 +49,11 @@ async function tryTool(name: string, args: Record<string, unknown>): Promise<voi
 
 async function main(): Promise<void> {
   loadEnvLocal();
+  try {
+    await ensureGoogleToken({ verbose: true });
+  } catch (e) {
+    console.warn(`google token refresh skipped: ${(e as Error).message}`);
+  }
   console.log("\nSurface status:");
   for (const s of surfaceStatus()) console.log(`  ${s.kind.padEnd(8)} ${s.access_status}`);
   console.log("\nLive calls (read-only, content redacted):");
