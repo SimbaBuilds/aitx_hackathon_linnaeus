@@ -9,11 +9,17 @@ Last updated: 2026-07-18 (Sat).
 ## The arc (headline stays the headline)
 
 1. **Instrument** — the standard candle: a fixed, memory-less Nemotron probe-agent. "The friction log *is* the audit."
-2. **Caught regression (THE money shot)** — run 1 completes the billing probe (friction 16.8) → org ships D2C → run 2 stalls (70.5). **Δ +53.7**, Nemotron-measured, reproducible. Linnaeus *caught* it; it didn't author it.
+2. **Caught regression (THE money shot)** — run 1 completes the billing probe (friction 16.8) → org ships D2C → run 2 stalls (70.5). **Δ +53.7**, Nemotron-measured, reproducible. Linnaeus *caught* it; it didn't author it. *[codebase — proves the instrument WORKS]*
 3. **Typed recommendation** — the candle emits a `Fix` card; a human decides.
-4. **The board** — 4 of 5 axes legible; billing is the one place the change drew blood (honest, not "everything's on fire").
+4. **The codebase board** — 4 of 5 axes legible; billing is the one place the change drew blood (honest, not "everything's on fire").
+5. **Frontier-Factor (synthesis)** — *"you don't have to know your gaps."* A frontier model explored my real org — repo + Gmail + Drive — and **invented 8 grounded probes**, each citing the exact artifact that made it suspicious (a status pipeline unreadable from the schema, a provider flag wired to nothing, an owner who exists only in email). Proves framing #2 (synthesized instance) — *demonstrated, not asserted*.
+6. **The org negative-space board (NEW watchable beat)** — the same fixed Nemotron candle ran three of those probes. Expand the trace: it searches the repo, finds no `CODEOWNERS`, **reaches into Gmail, actually finds the approver's name in a thread — and still scores `no-owner`.** A name in an email isn't an ownership record; it's the *shadow* of one. **The absence is the finding.** *[org — proves the instrument MATTERS; the half the codebase can't show, by construction]*
 
-Everything below is **supporting** — do not let it upstage the delta.
+Beats 2–4 are the **codebase** (instrument works). Beats 5–6 are the **org** (instrument matters) — the codebase→org progression the thesis promises, now backed by real runs instead of assertion. Everything after is **supporting** — do not let it upstage the delta.
+
+**`no-owner` in one line (for the board + Q&A):** *"It's not a tidiness score — it's the map of every decision that still needs a specific human whose authority you never wrote down."* For a solo operator / consultancy, `no-owner` **is** key-person / bus-factor detection: the org-level equivalent of the SPOF map.
+
+**Provenance guardrail (say if asked):** the friction *numbers* are Nemotron-measured; the frontier model only *designs* the probes (synthesis ≠ measurement). The trace view is name-safe (curated anonymizer); the raw cross-surface run is proof-on-demand, not the public board.
 
 ---
 

@@ -89,11 +89,18 @@ Cheap static metrics first (DRY, LOC, cyclomatic complexity, coupling) → rende
 - The **instance** is synthesized at runtime against the actual system, because a hardcoded specific measures surface mismatch, not operability.
 - Rule: a probe is hardcodable exactly when its category has a **universal instantiation** — every system has an auth story, an entry point, a secrets story. "Extend the core data model" is too org-shaped to pin.
 - Comparability comes from the fixed probes; longitudinal baseline comes from caching the synthesized ones. Neither can do the other's job.
+- **Demonstrated (Frontier-Factor).** We ran synthesis unguided against the real org: a frontier model explored repo + Gmail + Drive and proposed **8 grounded probes**, each citing the specific artifact that surfaced it. This is *instrument design*, so it uses a smart model — but the **measurement** stays on the pinned Nemotron candle. Synthesis ≠ measurement; keep the split clean when a judge asks "why is a frontier model in a Nemotron project?"
 
 ### 3. Negative-space detection — the headline finding
 You can't find tribal knowledge directly; by definition it isn't written down. You detect its **shadow**. When a probe dead-ends with no code fault, no owner, no doc, no discoverable reason — **that shaped hole is the finding.** "This works and nothing on record explains why" means the *why* is in someone's head. You located the knowledge not by finding it but by finding the exact gap where it should have been.
 
 > The whole reason you want operability is to take the human out of the loop — and you can't do that until you know where he's standing.
+
+**Now demonstrated, not asserted (the org board).** We ran this for real. The ownership probe searched the repo (no `CODEOWNERS`), then **reached into Gmail and actually found the approver's name in a thread — and still scored `no-owner`.** That's the whole move: a name in an email is not a committed ownership record, it's the *shadow* of one. An agent (or a new hire, or you-after-vacation) can only route on a durable record; email gets buried, memory walks out. So `no-owner` = **"a decision that still requires a specific human whose authority is written nowhere durable."** It is *not* a tidiness score — quality never enters except as the cause of an observed stall.
+
+- **`no-owner` is the instrument's diagnosis, not the agent's.** The candle only tries the task, stalls, and emits a structured verdict (`OWNER: UNDOCUMENTED`). Our fixed classifier assigns the tag from a closed vocabulary. *"The probe-agent doesn't grade itself; it tries, it stalls, and the instrument classifies the failure."*
+- **For a solo operator / consultancy this is the sharpest case, not the weakest.** `no-owner` at the org level **is** key-person / bus-factor detection — the map of where one head is the single point of failure. *"I pointed it at a real client org and it found that sign-off authority for clinical changes lives in exactly one person, recorded nowhere an agent can reach."*
+- **The trace makes it watchable.** Expanding a finding shows the candle's actual path — repo searches → the Gmail reach → the stall — so a builder-judge sees the negative space get *located*, live, instead of hearing it described. (Public-safe: a curated anonymizer strips real names; the raw run is proof-on-demand.)
 
 ### 4. Codebase as simulated org — and where the metaphor leaks
 The isomorphism is real (Conway's Law: a codebase is a literal imprint of the org's communication structure). But: **a codebase is the part of the org that already got externalized** — writing code *is* forcing the implicit into machine-runnable form. So a codebase has almost no negative space by construction; if it did, it wouldn't run.
@@ -201,6 +208,12 @@ That's the strongest "why this sponsor tech" story available — for us vLLM isn
 - "The stall authors the interview question — the audit produces its own recommendation, and hands you the decision."
 - "You don't let a code change merge if it breaks the tests. Linnaeus catches the org change that breaks your operability."
 - "The delta isn't Linnaeus getting smarter — it's your org getting less operable, and Linnaeus being the only thing that noticed."
+- "A name in an email isn't an ownership record — it's the shadow of one. The absence is the finding."
+- "`no-owner` isn't a tidiness score — it's the map of every decision that still needs a specific human you never wrote down."
+- "Watch it: it searched the repo, reached into my inbox, found the name — and still scored no-owner. Because you can't route an agent on a thread."
+- "The probe-agent doesn't grade itself. It tries, it stalls, and the fixed instrument classifies the failure."
+- "You don't have to know your gaps — the frontier model explored my org and invented the probes; the Nemotron candle measured them."
+- "For a solo shop, no-owner is bus-factor: the map of where one head is the single point of failure."
 - "vLLM isn't a cost optimization here — it's how we keep the instrument calibrated. A hosted API that drifts under you can't be a standard candle."
 - "Three billion active parameters, self-hosted, measuring a real regression. Small-model punch, not brute force."
 - "Remove Nemotron and there's no measurement — every finding is a Nemotron tool-use trace."
