@@ -102,15 +102,8 @@ export function TriggerView() {
 // N× so the number stays honest against the A/B slide.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BATCH_SPEEDUP = 1.77; // measured: Nemotron/vLLM, 5 probes, --max-num-seqs 8
 type Mode = "sequential" | "concurrent";
 type RunStatus = "queued" | "running" | "done";
-
-// Deterministic per-probe solo duration (ms) — heavier friction "takes longer".
-function soloDuration(p: RunnableProbe): number {
-  const s = p.expectedScore ?? 40;
-  return Math.round(700 + (s / 100) * 900); // ~700–1600ms
-}
 
 function StatusDot({ status }: { status: RunStatus | undefined }) {
   if (status === "running")
@@ -133,6 +126,7 @@ function RunNowPanel({ onComplete }: { onComplete: (e: TriggerEvent) => void }) 
   const [revealed, setRevealed] = useState<Record<string, number>>({});
   const [elapsed, setElapsed] = useState(0);
   const [result, setResult] = useState<{ wall: number; seqWall: number; mode: Mode; count: number } | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const ticker = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -171,57 +165,57 @@ function RunNowPanel({ onComplete }: { onComplete: (e: TriggerEvent) => void }) 
   const allSelected = selected.size === runnableProbes.length;
   const setAll = (on: boolean) => setSelected(on ? new Set(runnableProbes.map((p) => p.id)) : new Set());
 
-  function run() {
+  // Fire a REAL battery against the pinned candle via /api/run-battery. The route
+  // runs the probes server-side (same engine/surfaces/candle as run-audit.ts), so
+  // a click genuinely hits the vLLM endpoint — watch `Running: N reqs` in the log.
+  async function run() {
     if (selectedList.length === 0 || running) return;
     clearTimers();
+    setError(null);
     setPhase("running");
     setResult(null);
     setRevealed({});
-    setStatus(Object.fromEntries(selectedList.map((p) => [p.id, "queued" as RunStatus])));
+    // Concurrent → all in flight at once; sequential → all "in progress" (we can't
+    // stream per-probe completion over a single request, so they resolve together).
+    setStatus(Object.fromEntries(selectedList.map((p) => [p.id, "running" as RunStatus])));
 
     const start = performance.now();
     setElapsed(0);
     ticker.current = setInterval(() => setElapsed(performance.now() - start), 50);
 
-    const seqWall = selectedList.reduce((a, p) => a + soloDuration(p), 0);
-    const finish = (p: RunnableProbe) => {
-      setStatus((s) => ({ ...s, [p.id]: "done" }));
-      setRevealed((r) => ({ ...r, [p.id]: p.expectedScore ?? 0 }));
-    };
-    const begin = (p: RunnableProbe) => setStatus((s) => ({ ...s, [p.id]: "running" }));
+    try {
+      const res = await fetch("/api/run-battery", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ probeIds: selectedList.map((p) => p.id), mode }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) throw new Error(data.error ?? `HTTP ${res.status}`);
 
-    let wall: number;
-    if (mode === "sequential") {
-      let t = 0;
-      selectedList.forEach((p) => {
-        const at = t;
-        timers.current.push(setTimeout(() => begin(p), at));
-        t += soloDuration(p);
-        timers.current.push(setTimeout(() => finish(p), t));
-      });
-      wall = t;
-    } else {
-      // Batched: all in flight at once, completing staggered up to the measured
-      // saturated wall-clock (seqWall / 1.77) — not seqWall / N.
-      wall = seqWall / BATCH_SPEEDUP;
-      const n = selectedList.length;
-      selectedList.forEach((p, i) => {
-        begin(p); // all start immediately
-        const at = wall * (0.55 + 0.45 * ((i + 1) / n));
-        timers.current.push(setTimeout(() => finish(p), at));
-      });
+      if (ticker.current) clearInterval(ticker.current);
+      ticker.current = null;
+
+      const wall = (typeof data.wall_s === "number" ? data.wall_s : (performance.now() - start) / 1000) * 1000;
+      const scores: Record<string, number> = {};
+      const done: Record<string, RunStatus> = {};
+      for (const f of (data.findings ?? []) as Array<{ probe_id: string; score: number }>) {
+        scores[f.probe_id] = f.score;
+        done[f.probe_id] = "done";
+      }
+      selectedList.forEach((p) => { if (!(p.id in done)) done[p.id] = "done"; });
+      setStatus(done);
+      setRevealed(scores);
+      setElapsed(wall);
+      setResult({ wall, seqWall: 0, mode, count: selectedList.length });
+      setPhase("done");
+      onComplete(makeManualEvent(mode, selectedList.length, wall));
+    } catch (e) {
+      if (ticker.current) clearInterval(ticker.current);
+      ticker.current = null;
+      setError((e as Error).message || "run failed");
+      setStatus({});
+      setPhase("idle");
     }
-
-    timers.current.push(
-      setTimeout(() => {
-        if (ticker.current) clearInterval(ticker.current);
-        ticker.current = null;
-        setElapsed(wall);
-        setResult({ wall, seqWall, mode, count: selectedList.length });
-        setPhase("done");
-        onComplete(makeManualEvent(mode, selectedList.length, wall));
-      }, wall + 120)
-    );
   }
 
   const reset = () => {
@@ -231,6 +225,7 @@ function RunNowPanel({ onComplete }: { onComplete: (e: TriggerEvent) => void }) 
     setRevealed({});
     setElapsed(0);
     setResult(null);
+    setError(null);
   };
 
   return (
@@ -322,14 +317,21 @@ function RunNowPanel({ onComplete }: { onComplete: (e: TriggerEvent) => void }) 
           {/* run bar / live readout */}
           <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-dashed border-border pt-4">
             {phase === "idle" && (
-              <button
-                onClick={run}
-                disabled={selected.size === 0}
-                className="rounded-md px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-                style={{ background: FRICTION_GOOD }}
-              >
-                Run {selected.size} probe{selected.size === 1 ? "" : "s"} · {mode}
-              </button>
+              <>
+                <button
+                  onClick={run}
+                  disabled={selected.size === 0}
+                  className="rounded-md px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                  style={{ background: FRICTION_GOOD }}
+                >
+                  Run {selected.size} probe{selected.size === 1 ? "" : "s"} · {mode}
+                </button>
+                {error && (
+                  <span className="font-mono text-xs" style={{ color: FRICTION_BAD }}>
+                    ✗ {error}
+                  </span>
+                )}
+              </>
             )}
 
             {running && (
@@ -352,11 +354,11 @@ function RunNowPanel({ onComplete }: { onComplete: (e: TriggerEvent) => void }) 
                 <span className="font-mono text-sm tabular-nums text-foreground">
                   {(result.wall / 1000).toFixed(1)}s wall-clock
                 </span>
-                {result.mode === "concurrent" && (
-                  <span className="font-mono text-[11px] text-muted-foreground">
-                    vs {(result.seqWall / 1000).toFixed(1)}s sequential · {BATCH_SPEEDUP.toFixed(2)}× faster (batched)
-                  </span>
-                )}
+                <span className="font-mono text-[11px] text-muted-foreground">
+                  {result.mode === "concurrent"
+                    ? "measured · batched (--max-num-seqs 8) on the Nemotron candle"
+                    : "measured · sequential on the Nemotron candle"}
+                </span>
                 <button
                   onClick={reset}
                   className="ml-auto rounded-md px-3 py-1.5 text-xs font-medium text-muted-foreground ring-1 ring-border transition-colors hover:text-foreground"
