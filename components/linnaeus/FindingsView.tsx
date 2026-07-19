@@ -16,7 +16,7 @@ import {
   scoreOf,
   target,
   traceOf,
-  verdictOf,
+  conclusionOf,
   type TraceStep,
 } from "@/components/linnaeus/data";
 import { frictionColor } from "@/components/linnaeus/colors";
@@ -94,7 +94,7 @@ function TraceStepRow({ step }: { step: TraceStep }) {
 
 function TracePanel({ probeId }: { probeId: string }) {
   const steps = traceOf(probeId);
-  const verdict = verdictOf(probeId);
+  const conclusion = conclusionOf(probeId);
   const repoSteps = steps.filter((s) => s.surface === "repo").length;
   const reachedNonRepo = steps.some((s) => s.isCrossSurfaceReach);
   return (
@@ -108,14 +108,12 @@ function TracePanel({ probeId }: { probeId: string }) {
           <TraceStepRow key={i} step={s} />
         ))}
       </ol>
-      {verdict && (
-        <div className="flex items-start gap-2 rounded-md border border-[#c0392b]/30 bg-[#c0392b]/[0.04] px-3 py-2">
-          <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#c0392b]">
-            verdict
-          </span>
-          <span className="font-mono text-[12px] text-foreground">{verdict}</span>
-        </div>
-      )}
+      <div className="flex items-start gap-2 rounded-md border border-[#c0392b]/30 bg-[#c0392b]/[0.04] px-3 py-2">
+        <span className="mt-0.5 shrink-0 text-[10px] font-semibold uppercase tracking-wide text-[#c0392b]">
+          {conclusion.kind === "verdict" ? "verdict" : "outcome"}
+        </span>
+        <span className="font-mono text-[12px] text-foreground">{conclusion.text}</span>
+      </div>
     </div>
   );
 }

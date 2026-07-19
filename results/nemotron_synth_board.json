@@ -7,7 +7,7 @@
     "seed": 42,
     "temp": 0
   },
-  "generated": "2026-07-18T22:50:56.439Z",
+  "generated": "2026-07-19T12:44:59.898Z",
   "surfaces": [
     {
       "id": "repo",
@@ -37,96 +37,84 @@
   ],
   "findings": [
     {
-      "run_id": "run_SKMD_synth-ownership-map_mrqyi5tn59yo47",
+      "run_id": "run_SKMD_synth-ownership-map_mrrsags72y5ift",
       "probe_id": "synth-ownership-map",
       "status": "stalled",
       "friction_vector": {
         "completed": false,
-        "seconds_to_first_correct_move": 6.558,
+        "seconds_to_first_correct_move": 6.467,
         "surfaces_opened": 2,
-        "tool_calls": 18,
+        "tool_calls": 20,
         "retries": 0,
-        "dead_ends": 1,
+        "dead_ends": 2,
         "guessed": false,
         "hedging_count": 0
       },
       "root_cause_tag": "no-owner",
-      "remediation": {
-        "type": "Document",
-        "content": "Record the clinical/protocol sign-off authority in a committed ownership file. Today the approver is named only in email, so neither an agent nor a new hire can establish who signs off a protocol change from the repo alone.",
-        "target": "docs/governance/clinical-signoff-owner.md",
-        "provenance": "candle-inferred (sign-off authority named only in email, not in any committed record)"
-      },
+      "remediation": null,
+      "verdict": "",
       "_derived": {
-        "friction_score": 74,
+        "friction_score": 77,
         "surfaces_hit": [
           "repo",
           "gmail"
         ],
         "tool_calls_by_surface": {
-          "repo": 17,
+          "repo": 19,
           "gmail": 1
         }
       }
     },
     {
-      "run_id": "run_SKMD_synth-billing-rollout_mrqyley6ekmagv",
+      "run_id": "run_SKMD_synth-billing-rollout_mrrsds44bhbqax",
       "probe_id": "synth-billing-rollout",
       "status": "stalled",
       "friction_vector": {
         "completed": false,
-        "seconds_to_first_correct_move": 6.6,
+        "seconds_to_first_correct_move": 4.084,
         "surfaces_opened": 3,
-        "tool_calls": 8,
-        "retries": 0,
-        "dead_ends": 5,
-        "guessed": false,
-        "hedging_count": 0
-      },
-      "root_cause_tag": "no-owner",
-      "remediation": {
-        "type": "Document",
-        "content": "Open an owned, tracked task for the fleet-wide weekly-batched-billing rollout. The only record today is an email thread plus an ad-hoc manual fix to two clinics — there is no accountable owner or ticket, so the rollout can't be resumed or audited.",
-        "target": "implementation_plans/weekly-billing-rollout.md",
-        "provenance": "candle-inferred (rollout exists only as an email thread; no tracked task)"
-      },
-      "_derived": {
-        "friction_score": 86.5,
-        "surfaces_hit": [
-          "gmail",
-          "repo",
-          "notion"
-        ],
-        "tool_calls_by_surface": {
-          "gmail": 5,
-          "repo": 2,
-          "notion": 1
-        }
-      }
-    },
-    {
-      "run_id": "run_SKMD_synth-nxtyou-wiring_mrqym1rmruid3m",
-      "probe_id": "synth-nxtyou-wiring",
-      "status": "stalled",
-      "friction_vector": {
-        "completed": false,
-        "seconds_to_first_correct_move": 1.652,
-        "surfaces_opened": 1,
-        "tool_calls": 20,
+        "tool_calls": 12,
         "retries": 0,
         "dead_ends": 4,
         "guessed": false,
         "hedging_count": 0
       },
-      "root_cause_tag": "dead-code",
-      "remediation": {
-        "type": "Delete",
-        "content": "Remove the half-wired d2c_web provider flag (or finish wiring it). The users.is_d2c_web column and the find_available_providers filter exist, but nothing sets the flag and the patient-queue code never branches on it — so it reads as a shippable feature while being dead code.",
-        "target": "telehealth_api — users.is_d2c_web + find_available_providers",
-        "provenance": "candle-inferred (column and filter exist; no setter, no queue branch)"
-      },
+      "root_cause_tag": "no-owner",
+      "remediation": null,
+      "verdict": "ROLLOUT: UNOWNED — implementation plan for weekly billing exists but no designated owner or tracked ticket; only an email thread references pilot clinics.",
       "_derived": {
-        "friction_score": 82.5,
+        "friction_score": 83.5,
+        "surfaces_hit": [
+          "repo",
+          "gmail",
+          "notion"
+        ],
+        "tool_calls_by_surface": {
+          "repo": 7,
+          "gmail": 2,
+          "notion": 3
+        }
+      }
+    },
+    {
+      "run_id": "run_SKMD_synth-nxtyou-wiring_mrrsenryjjfjse",
+      "probe_id": "synth-nxtyou-wiring",
+      "status": "stalled",
+      "friction_vector": {
+        "completed": false,
+        "seconds_to_first_correct_move": 1.773,
+        "surfaces_opened": 1,
+        "tool_calls": 20,
+        "retries": 0,
+        "dead_ends": 0,
+        "guessed": false,
+        "hedging_count": 0
+      },
+      "root_cause_tag": "dead-code",
+      "remediation": null,
+      "verdict": "",
+      "_derived": {
+        "friction_score": 70.5,
         "surfaces_hit": [
           "repo"
         ],
@@ -155,44 +143,8 @@
       "probe": "synth-ownership-map",
       "tool": "repo_grep",
       "surface": "repo",
-      "ok": false,
-      "query": "CODEOWNERS",
-      "note": "no matches for \"CODEOWNERS\""
-    },
-    {
-      "probe": "synth-ownership-map",
-      "tool": "gmail_search",
-      "surface": "gmail",
       "ok": true,
       "query": "medical director"
-    },
-    {
-      "probe": "synth-ownership-map",
-      "tool": "repo_grep",
-      "surface": "repo",
-      "ok": true,
-      "query": "MEDICAL DIRECTOR"
-    },
-    {
-      "probe": "synth-ownership-map",
-      "tool": "repo_grep",
-      "surface": "repo",
-      "ok": true,
-      "query": "Heather"
-    },
-    {
-      "probe": "synth-ownership-map",
-      "tool": "repo_grep",
-      "surface": "repo",
-      "ok": true,
-      "query": "approval"
-    },
-    {
-      "probe": "synth-ownership-map",
-      "tool": "repo_grep",
-      "surface": "repo",
-      "ok": true,
-      "query": "OWNERS"
     },
     {
       "probe": "synth-ownership-map",
@@ -206,6 +158,35 @@
       "tool": "repo_grep",
       "surface": "repo",
       "ok": true,
+      "query": "approved by"
+    },
+    {
+      "probe": "synth-ownership-map",
+      "tool": "gmail_search",
+      "surface": "gmail",
+      "ok": true,
+      "query": "medical director"
+    },
+    {
+      "probe": "synth-ownership-map",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": false,
+      "query": "CODEOWNERS",
+      "note": "no matches for \"CODEOWNERS\""
+    },
+    {
+      "probe": "synth-ownership-map",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "OWNER"
+    },
+    {
+      "probe": "synth-ownership-map",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
       "query": "Tony"
     },
     {
@@ -213,56 +194,99 @@
       "tool": "repo_grep",
       "surface": "repo",
       "ok": true,
-      "query": "Medical Director"
+      "query": "OWNERS"
     },
     {
       "probe": "synth-ownership-map",
       "tool": "repo_grep",
       "surface": "repo",
       "ok": true,
-      "query": "approve"
+      "query": "Clinical Supervisor"
     },
     {
       "probe": "synth-ownership-map",
-      "tool": "repo_grep",
+      "tool": "repo_list",
       "surface": "repo",
       "ok": true,
-      "query": "stacking rules"
-    },
-    {
-      "probe": "synth-ownership-map",
-      "tool": "repo_grep",
-      "surface": "repo",
-      "ok": true,
-      "query": "sign-off"
-    },
-    {
-      "probe": "synth-ownership-map",
-      "tool": "repo_grep",
-      "surface": "repo",
-      "ok": true,
-      "query": "Dr. Sunil Kurup"
+      "query": "docs/shared"
     },
     {
       "probe": "synth-ownership-map",
       "tool": "repo_read",
       "surface": "repo",
       "ok": true,
-      "query": "implementation_plans/archive/protocols_and_standing_orders.md"
+      "query": "docs/shared/OVERSIGHT_ORGS.md"
     },
     {
       "probe": "synth-ownership-map",
       "tool": "repo_grep",
       "surface": "repo",
       "ok": true,
-      "query": "review"
+      "query": "must be approved by"
     },
     {
       "probe": "synth-ownership-map",
       "tool": "repo_grep",
       "surface": "repo",
       "ok": true,
-      "query": "Medical Director:"
+      "query": "signed by"
+    },
+    {
+      "probe": "synth-ownership-map",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "must be approved by"
+    },
+    {
+      "probe": "synth-ownership-map",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "Angela"
+    },
+    {
+      "probe": "synth-ownership-map",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "John"
+    },
+    {
+      "probe": "synth-ownership-map",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": false,
+      "query": "approved by medical director",
+      "note": "no matches for \"approved by medical director\""
+    },
+    {
+      "probe": "synth-ownership-map",
+      "tool": "repo_read",
+      "surface": "repo",
+      "ok": true,
+      "query": "scripts/seed/protocols_prod_seed.sql"
+    },
+    {
+      "probe": "synth-billing-rollout",
+      "tool": "repo_list",
+      "surface": "repo",
+      "ok": true,
+      "query": "."
+    },
+    {
+      "probe": "synth-billing-rollout",
+      "tool": "repo_list",
+      "surface": "repo",
+      "ok": true,
+      "query": "implementation_plans"
+    },
+    {
+      "probe": "synth-billing-rollout",
+      "tool": "repo_read",
+      "surface": "repo",
+      "ok": true,
+      "query": "implementation_plans/weekly_medspa_clearance_billing.md"
     },
     {
       "probe": "synth-billing-rollout",
@@ -277,53 +301,57 @@
       "tool": "gmail_search",
       "surface": "gmail",
       "ok": true,
-      "query": "chronic decline"
-    },
-    {
-      "probe": "synth-billing-rollout",
-      "tool": "gmail_search",
-      "surface": "gmail",
-      "ok": false,
-      "query": "batched billing",
-      "note": "empty result — no mail matches \"batched billing\""
-    },
-    {
-      "probe": "synth-billing-rollout",
-      "tool": "gmail_search",
-      "surface": "gmail",
-      "ok": false,
-      "query": "\"chronic decline\" \"weekly\"",
-      "note": "empty result — no mail matches \"\"chronic decline\" \"weekly\"\""
-    },
-    {
-      "probe": "synth-billing-rollout",
-      "tool": "repo_grep",
-      "surface": "repo",
-      "ok": true,
-      "query": "medspa"
-    },
-    {
-      "probe": "synth-billing-rollout",
-      "tool": "gmail_search",
-      "surface": "gmail",
-      "ok": true,
-      "query": "SKMD Wellness"
-    },
-    {
-      "probe": "synth-billing-rollout",
-      "tool": "repo_grep",
-      "surface": "repo",
-      "ok": false,
-      "query": "weekly batched",
-      "note": "no matches for \"weekly batched\""
+      "query": "weekly billing"
     },
     {
       "probe": "synth-billing-rollout",
       "tool": "notion_query_tasks",
       "surface": "notion",
       "ok": false,
-      "query": "weekly",
+      "query": "weekly billing",
       "note": "notion query failed: HTTP 404"
+    },
+    {
+      "probe": "synth-billing-rollout",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "owner"
+    },
+    {
+      "probe": "synth-billing-rollout",
+      "tool": "notion_query_tasks",
+      "surface": "notion",
+      "ok": false,
+      "note": "notion query failed: HTTP 404"
+    },
+    {
+      "probe": "synth-billing-rollout",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "rollout"
+    },
+    {
+      "probe": "synth-billing-rollout",
+      "tool": "notion_query_tasks",
+      "surface": "notion",
+      "ok": false,
+      "note": "notion query failed: HTTP 404"
+    },
+    {
+      "probe": "synth-billing-rollout",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "owner"
+    },
+    {
+      "probe": "synth-billing-rollout",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "Thrive"
     },
     {
       "probe": "synth-nxtyou-wiring",
@@ -337,37 +365,7 @@
       "tool": "repo_grep",
       "surface": "repo",
       "ok": true,
-      "query": "PUT /api/v1/nxtyou/admin"
-    },
-    {
-      "probe": "synth-nxtyou-wiring",
-      "tool": "repo_read",
-      "surface": "repo",
-      "ok": true,
-      "query": "nxtyou_njs/lib/api/admin.ts"
-    },
-    {
-      "probe": "synth-nxtyou-wiring",
-      "tool": "repo_grep",
-      "surface": "repo",
-      "ok": true,
       "query": "PUT /api/v1/nxtyou/admin/providers"
-    },
-    {
-      "probe": "synth-nxtyou-wiring",
-      "tool": "repo_list",
-      "surface": "repo",
-      "ok": false,
-      "query": "nxtyou_njs/app/(admin)/admin/providers",
-      "note": "directory not found: nxtyou_njs/app/(admin)/admin/providers"
-    },
-    {
-      "probe": "synth-nxtyou-wiring",
-      "tool": "repo_grep",
-      "surface": "repo",
-      "ok": false,
-      "query": "nxtyou-admin/providers",
-      "note": "no matches for \"nxtyou-admin/providers\""
     },
     {
       "probe": "synth-nxtyou-wiring",
@@ -387,9 +385,57 @@
       "probe": "synth-nxtyou-wiring",
       "tool": "repo_grep",
       "surface": "repo",
-      "ok": false,
-      "query": "set_nxtyou_access",
-      "note": "no matches for \"set_nxtyou_access\""
+      "ok": true,
+      "query": "is_nxtyou_provider"
+    },
+    {
+      "probe": "synth-nxtyou-wiring",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "provider_user_id"
+    },
+    {
+      "probe": "synth-nxtyou-wiring",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "nxtyou-access"
+    },
+    {
+      "probe": "synth-nxtyou-wiring",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "def "
+    },
+    {
+      "probe": "synth-nxtyou-wiring",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "providers/{provider_user_id}/nxtyou-access"
+    },
+    {
+      "probe": "synth-nxtyou-wiring",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "nxtyou-access"
+    },
+    {
+      "probe": "synth-nxtyou-wiring",
+      "tool": "repo_grep",
+      "surface": "repo",
+      "ok": true,
+      "query": "def "
+    },
+    {
+      "probe": "synth-nxtyou-wiring",
+      "tool": "repo_read",
+      "surface": "repo",
+      "ok": true,
+      "query": "skmd_fastapi/app/endpoints/nxtyou/admin.py"
     },
     {
       "probe": "synth-nxtyou-wiring",
@@ -400,10 +446,10 @@
     },
     {
       "probe": "synth-nxtyou-wiring",
-      "tool": "repo_read",
+      "tool": "repo_grep",
       "surface": "repo",
       "ok": true,
-      "query": "skmd_fastapi/app/endpoints/nxtyou/admin.py"
+      "query": "set_provider_nxtyou_access"
     },
     {
       "probe": "synth-nxtyou-wiring",
@@ -417,14 +463,7 @@
       "tool": "repo_grep",
       "surface": "repo",
       "ok": true,
-      "query": "async def set_provider_nxtyou_access"
-    },
-    {
-      "probe": "synth-nxtyou-wiring",
-      "tool": "repo_grep",
-      "surface": "repo",
-      "ok": true,
-      "query": "is_nxtyou_provider"
+      "query": "set_provider_nxtyou_access"
     },
     {
       "probe": "synth-nxtyou-wiring",
@@ -442,13 +481,6 @@
     },
     {
       "probe": "synth-nxtyou-wiring",
-      "tool": "repo_grep",
-      "surface": "repo",
-      "ok": true,
-      "query": "is_nxtyou_provider ="
-    },
-    {
-      "probe": "synth-nxtyou-wiring",
       "tool": "repo_read",
       "surface": "repo",
       "ok": true,
@@ -459,15 +491,7 @@
       "tool": "repo_grep",
       "surface": "repo",
       "ok": true,
-      "query": "async def set_provider_nxtyou_access"
-    },
-    {
-      "probe": "synth-nxtyou-wiring",
-      "tool": "repo_grep",
-      "surface": "repo",
-      "ok": false,
-      "query": "async def set_provider_nxtyou_access(.*)",
-      "note": "no matches for \"async def set_provider_nxtyou_access(.*)\""
+      "query": "is_nxtyou_provider"
     }
   ]
 }

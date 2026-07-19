@@ -156,6 +156,28 @@ export function verdictOf(probeId: string): string | null {
   return f?.verdict ? anonymize(f.verdict) : null;
 }
 
+// The panel's payoff line. If the candle emitted a structured verdict, show it.
+// Otherwise the candle thrashed to its step budget WITHOUT concluding — itself a
+// finding (a wall for the machine) — so we derive an honest line from the measured
+// trace instead of inventing a verdict.
+export interface Conclusion {
+  text: string;
+  kind: "verdict" | "no-conclusion";
+}
+export function conclusionOf(probeId: string): Conclusion {
+  const v = verdictOf(probeId);
+  if (v) return { text: v, kind: "verdict" };
+  const f = synthBoard.findings.find((x) => x.probe_id === probeId);
+  const steps = traceOf(probeId);
+  const nonRepo = [...new Set(steps.filter((s) => s.ok && s.surface !== "repo").map((s) => s.surface))];
+  const reached = nonRepo.length ? `, reached ${nonRepo.join(", ")}` : "";
+  const tag = f?.root_cause_tag ?? "none";
+  return {
+    text: `Stalled after ${steps.length} tool calls${reached} without reaching a conclusion → ${tag}.`,
+    kind: "no-conclusion",
+  };
+}
+
 /** Does this finding have a captured trace to expand? */
 export const hasTrace = (probeId: string): boolean =>
   (synthBoard.call_log ?? []).some((r) => r.probe === probeId);
