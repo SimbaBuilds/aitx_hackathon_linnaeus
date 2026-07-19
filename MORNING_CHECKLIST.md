@@ -61,14 +61,22 @@
 
 You never say "trust me" — you show the server's own telemetry.
 
-| Screen | Command | Proves |
-|---|---|---|
-| **vLLM log (live)** | `ssh <box> 'tail -f /home/shadeform/vllm.log'` | `Running: 5 reqs` = real batching. Strongest. |
-| **Model identity** | `curl <url>/v1/models` | `nemotron` / `NVIDIA-Nemotron-3-Nano-30B-A3B-FP8` / 65k ctx |
-| **GPU** | `ssh <box> 'watch -n1 nvidia-smi'` | H100, ~32 GB VRAM held, util spikes on run |
-| **Runtime panel** | the app (if built) | pretty version of the above, from vLLM `/metrics` |
+**Access:** no SSH configured — run the box-side commands in the **Jupyter terminal**
+(`https://jupyter-h8t7in906.brevlab.com/lab` → `+` → Terminal). Open a 2nd tab so the
+log can keep tailing. Live endpoint: `https://8000-h8t7in906.brevlab.com/v1`.
 
-**Layout:** browser (app + panel) on one half · `tail -f` terminal on the other · `nvidia-smi` in a corner. Web terminal (Brev/Jupyter tab) is the fallback if SSH is fussy.
+| Screen | Command (box = Jupyter terminal) | Proves |
+|---|---|---|
+| **vLLM log (live)** | `tail -f /home/shadeform/vllm.log` | `Running: 5 reqs` + KV-cache usage = real continuous batching. Strongest. |
+| **GPU** | `nvidia-smi` (live: `watch -n1 nvidia-smi`) | H100 80GB, ~30 GB VRAM held by python, util spikes on run |
+| **Model identity** | `curl -s https://8000-h8t7in906.brevlab.com/v1/models` (box OR laptop) | `nemotron` / `NVIDIA-Nemotron-3-Nano-30B-A3B-FP8` / 65k ctx |
+| **vLLM metrics** | `curl -s https://8000-h8t7in906.brevlab.com/metrics \| grep -E "num_requests_running\|gpu_cache_usage"` | raw `num_requests_running` + `gpu_cache_usage_perc` behind the log |
+
+**To make batching VISIBLE on camera:** tail the log (screen 1), then from the repo terminal run
+`LINNAEUS_BATTERY_CONCURRENT=1 npx tsx scripts/run-audit.ts` and watch `Running: 1 → 5 reqs`
+climb — that's the 1.77× vLLM A/B story, live.
+
+**Layout:** browser (app + Field Log) on one half · `tail -f vllm.log` top-right · `nvidia-smi` bottom-right.
 
 ---
 
