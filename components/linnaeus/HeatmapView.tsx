@@ -55,7 +55,7 @@ function Cell({ c, onOpen }: { c: HeatCell; onOpen: () => void }) {
         <div className="font-mono text-[11px] leading-tight opacity-70">{dir(c.path)}</div>
         <div className="font-mono text-sm font-semibold leading-tight break-all">{base(c.path)}</div>
         {task && (
-          <p className="mt-1.5 line-clamp-2 text-[11px] leading-snug opacity-80">
+          <p className="mt-2 line-clamp-3 text-sm italic leading-snug opacity-95">
             &ldquo;{task}&rdquo;
           </p>
         )}
