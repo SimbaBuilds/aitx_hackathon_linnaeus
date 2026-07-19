@@ -24,17 +24,25 @@
    - The URL is **new** each deploy (old dead one was `https://8000-6b6iq7v4d.brevlab.com/v1`).
    - **Edit `.env.local`** → set `CANDLE_BASE_URL=<NEW-URL>/v1`.
    - **Add a line to `COORDINATION.md`** so the build session picks up the new URL.
-4. **Pre-warm + RECORD (own this footage all day):** run the battery once and screen-record it —
+4. **Backfill the org-board verdicts (Nemotron, ~2 min).** The synthesized org-level board (beat 6) is banked and Nemotron-measured, but the trace-panel *verdict lines* (`OWNER: UNDOCUMENTED …`) couldn't be captured before the box died. One clean run fills them:
+   ```bash
+   npx tsx scripts/run-synth-board.ts        # prod path — writes results/nemotron_synth_board.json
+   ```
+   - Needs the repointed `CANDLE_BASE_URL` (step 3) — it MUST be the Nemotron candle, not dev/Haiku. (`LINNAEUS_ALLOW_DEV=1` exists but writes a *separate* `dev_synth_board.json` — never use it for the demo board.)
+   - Google auto-refresh is wired in, so no token minting — but if Gmail/Drive show `unauthorized`, run `npx tsx scripts/verify-surfaces.ts` first.
+   - Expect: 3 stalled (≈74 / 86.5 / 82.5), `no-owner ×2` + `dead-code`, and "**3 successful non-repo (gmail) calls**" = the cross-surface proof. Trace panels then show the verdict line + the "← reached gmail" marker.
+5. **Pre-warm + RECORD (own this footage all day):** run the battery once and screen-record it —
    ```bash
    LINNAEUS_BATTERY_CONCURRENT=1 npx tsx scripts/run-audit.ts
    ```
    Capture, in one ~2-min take (or 3 short ones):
    - the **runtime UI** (candle card + panel: probes-in-flight → 5, KV-cache filling),
    - the **vLLM log** scrolling (`Running: 5 reqs`),
-   - the **money-shot delta** in the product UI (16.8 → 70.5).
+   - the **money-shot delta** in the product UI (16.8 → 70.5),
+   - **NEW:** expand an org-board finding to show the **trace** (repo → Gmail reach → `no-owner` stall) — beat 6, watchable.
    → This recording is your ambient/fallback content whether or not the box stays up.
-5. **Arrange + practice the proof screens** (below) once, so it's muscle memory.
-6. **Keep the box up through 12–3** for the NVIDIA/vLLM judges; kill it if idle after. Don't leave it burning between judges.
+6. **Arrange + practice the proof screens** (below) once, so it's muscle memory.
+7. **Keep the box up through 12–3** for the NVIDIA/vLLM judges; kill it if idle after. Don't leave it burning between judges.
 
 ---
 
@@ -54,7 +62,7 @@ You never say "trust me" — you show the server's own telemetry.
 ---
 
 ## 🎬 Booth strategy (3-hr science fair)
-- **Always-on:** the **interactive web app on banked data** (heatmap → findings → +53.7 delta). No GPU needed — `next dev` or the deployed app. Let judges click it.
+- **Always-on:** the **interactive web app on banked data** (heatmap → findings → +53.7 delta). No GPU needed — `next dev` or the deployed app. Let judges click it. **Expand an org-board finding** to reveal the trace (repo → Gmail → `no-owner`) — the watchable beat 6, name-safe (curated anonymizer).
 - **Ambient proof:** the morning **recording** (loop it on a second screen/tab).
 - **Marquee:** the **live box** run, for judges who care (esp. NVIDIA/vLLM). Not a 3-hr loop.
 - **Live-run move:** `LINNAEUS_BATTERY_CONCURRENT=1 npx tsx scripts/run-audit.ts` → ~113s, narrate "5 in flight, vLLM batching them." **2-min mental cap**, then fall back to the recording.
@@ -64,9 +72,10 @@ You never say "trust me" — you show the server's own telemetry.
 ## 🔢 Numbers to have on the tip of your tongue
 - **Money shot:** billing probe **16.8 (completed) → 70.5 (stalled) = Δ +53.7**, Nemotron-measured, reproducible (`seed 42`, `temp 0`). A *caught regression*, not authored.
 - **vLLM A/B:** **200.1s sequential → 113.3s concurrent = 1.77× / −43%**, same H100/model/battery.
-- **Board:** 4 of 5 codebase axes legible; billing is the one that drew blood.
+- **Codebase board:** 4 of 5 codebase axes legible; billing is the one that drew blood.
+- **Org board (beat 6):** 3 synthesized org-level probes, all stalled — **≈74 / 86.5 / 82.5**, `no-owner ×2` + `dead-code`. **3 successful Gmail calls** = Nemotron provably worked the mailbox and *still* found no committed owner (the negative space).
 - **Model:** Nemotron-3-Nano-30B-A3B, **FP8**, **~3B active params** (MoE) = the "small-model punch."
-- **Banked at:** `results/nemotron_billing_delta.json`, `results/vllm_batching_ab.json`, `fixtures/demo.json`.
+- **Banked at:** `results/nemotron_billing_delta.json`, `results/vllm_batching_ab.json`, `results/nemotron_synth_board.json` (org board), `results/synthesized_probes_*.md` (the 8 proposals), `fixtures/demo.json`.
 
 ---
 
