@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScorecardView } from "@/components/linnaeus/ScorecardView";
 import { HeatmapView } from "@/components/linnaeus/HeatmapView";
 import { FindingsView } from "@/components/linnaeus/FindingsView";
 import { DeltaView } from "@/components/linnaeus/DeltaView";
@@ -99,13 +100,17 @@ export function Dashboard() {
         <span>No. LIN—0417</span>
       </div>
 
-      <Tabs defaultValue="delta" className="gap-6">
+      <Tabs defaultValue="scorecard" className="gap-6">
         <TabsList className="w-full sm:w-auto">
+          <TabsTrigger value="scorecard">Scorecard</TabsTrigger>
           <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
           <TabsTrigger value="findings">Findings</TabsTrigger>
           <TabsTrigger value="delta">Deltas</TabsTrigger>
           <TabsTrigger value="triggers">Field Log</TabsTrigger>
         </TabsList>
+        <TabsContent value="scorecard">
+          <ScorecardView />
+        </TabsContent>
         <TabsContent value="heatmap">
           <HeatmapView />
         </TabsContent>

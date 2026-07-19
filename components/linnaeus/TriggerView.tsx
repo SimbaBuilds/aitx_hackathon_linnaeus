@@ -62,17 +62,18 @@ export function TriggerView() {
     <div className="space-y-6">
       <div>
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-2 border-b border-border pb-2.5">
-          <span className="font-serif text-lg italic text-muted-foreground">Plate V</span>
+          <span className="font-serif text-lg italic text-muted-foreground">Plate IV</span>
           <h2 className="text-2xl">Field Log</h2>
           <span className="ml-auto font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-            Event-driven re-audits
+            Cron baseline · targeted events
           </span>
         </div>
         <p className="mt-2.5 max-w-2xl text-sm text-muted-foreground">
-          Linnaeus doesn&rsquo;t wait to be asked. An always-on classifier watches the org&rsquo;s
-          event surfaces; when a change could alter how legibly an agent can operate, it
-          <span className="text-foreground"> wakes and re-audits</span> — and catches the regression
-          the change introduced.
+          <span className="text-foreground">Cron is the baseline engine</span> — it runs the full
+          battery on a schedule, so operability is always freshly measured.{" "}
+          <span className="text-foreground">Event triggers are targeted</span>: a change on an org
+          surface fires just the affected probe group for that org group, catching the regression it
+          introduced.
         </p>
       </div>
 

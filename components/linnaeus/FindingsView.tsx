@@ -152,7 +152,7 @@ export function FindingsView() {
     <div className="space-y-5">
       <div>
         <div className="flex items-baseline gap-3 border-b border-border pb-2.5">
-          <span className="font-serif text-lg italic text-muted-foreground">Plate III</span>
+          <span className="font-serif text-lg italic text-muted-foreground">Plate II</span>
           <h2 className="text-2xl">Findings Catalog</h2>
         </div>
         <p className="mt-2.5 max-w-2xl text-sm text-muted-foreground">
