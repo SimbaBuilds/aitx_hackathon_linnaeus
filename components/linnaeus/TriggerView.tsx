@@ -574,20 +574,19 @@ function statusColor(status: string): string {
 
 // The log detail for an operator "Run now": which probes ran, and each one's
 // real status + friction score + root cause, straight from the battery response.
-function OperatorRunDetail({ run }: { run: NonNullable<TriggerEvent["operatorRun"]> }) {
-  const stalled = run.probes.filter((p) => p.status !== "completed").length;
+// Legacy events (saved before probe-detail existed) have no `operatorRun` — they
+// still render cleanly: the summary line from `reason`, just no per-probe list.
+function OperatorRunDetail({ e }: { e: TriggerEvent }) {
+  const run = e.operatorRun;
   return (
     <div className="space-y-2.5">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
         <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground/70">
-          {run.model} ·
+          {run?.model ?? e.classifierModel} ·
         </span>
-        <span>
-          {run.probes.length} probe{run.probes.length === 1 ? "" : "s"} · {run.mode}
-          {run.mode === "concurrent" ? " (--max-num-seqs 8)" : ""} · {(run.wall / 1000).toFixed(1)}s
-          wall-clock · {stalled} stalled
-        </span>
+        <span>{e.reason}</span>
       </div>
+      {run && run.probes.length > 0 && (
       <ul className="divide-y divide-border/60 overflow-hidden rounded-lg bg-muted/30">
         {run.probes.map((p) => (
           <li key={p.id} className="flex items-center gap-2.5 px-3 py-1.5">
@@ -605,6 +604,7 @@ function OperatorRunDetail({ run }: { run: NonNullable<TriggerEvent["operatorRun
           </li>
         ))}
       </ul>
+      )}
     </div>
   );
 }
@@ -637,9 +637,11 @@ function TriggerRow({ e }: { e: TriggerEvent }) {
         </div>
 
         <div className="space-y-3 px-5 py-4">
-          {e.operatorRun ? (
-            /* operator run: real per-probe results, no classifier verdict */
-            <OperatorRunDetail run={e.operatorRun} />
+          {e.source === "operator" ? (
+            /* operator run: real per-probe results, no classifier verdict.
+               Branch on source (not the field) so legacy cached runs — saved
+               before probe-detail existed — also drop the classifier badge. */
+            <OperatorRunDetail e={e} />
           ) : (
             /* classifier decision */
             <div className="flex flex-wrap items-start gap-x-3 gap-y-1.5">
