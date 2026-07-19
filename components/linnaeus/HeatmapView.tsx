@@ -16,7 +16,7 @@ import {
   type OrgProbe,
   type TraceStep,
 } from "@/components/linnaeus/data";
-import { heatFill, frictionColor } from "@/components/linnaeus/colors";
+import { heatFill } from "@/components/linnaeus/colors";
 import { StatusBadge, TagBadge, RemediationBadge } from "@/components/linnaeus/ui";
 
 // ── Unified probe card view-model ──────────────────────────────────────────────
@@ -102,26 +102,25 @@ const codebaseCards: ProbeCardVM[] = heatCells
 
 // ── Uniform probe card ─────────────────────────────────────────────────────────
 function ProbeCard({ vm, onOpen }: { vm: ProbeCardVM; onOpen: () => void }) {
-  const stalled = vm.status === "stalled";
+  // Friction lives on ONE channel: the blue heat ramp. The card body is washed
+  // bluer as friction rises (20%→40% of the ramp over paper), and the left rail
+  // carries the full-intensity anchor. Red is reserved for the stall STATUS badge
+  // only — never on the friction channel — so the two never blend to purple.
+  const t = vm.score / 100;
+  const tint = `color-mix(in srgb, ${heatFill(t)} ${Math.round(20 + t * 20)}%, var(--card))`;
   return (
     <button
       type="button"
       onClick={onOpen}
-      className="group relative flex cursor-pointer flex-col gap-3 overflow-hidden rounded-xl bg-card p-4 pl-5 text-left ring-1 ring-border transition-transform duration-150 hover:-translate-y-0.5 hover:ring-foreground/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground"
+      className="group relative flex cursor-pointer flex-col gap-3 overflow-hidden rounded-xl p-4 pl-5 text-left ring-1 ring-border transition-transform duration-150 hover:-translate-y-0.5 hover:ring-foreground/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground"
+      style={{ background: tint }}
     >
-      {/* blue friction gradient rail — driven by measured friction, not heat */}
+      {/* blue friction gradient rail — full-intensity anchor for the wash */}
       <span
         aria-hidden
         className="pointer-events-none absolute inset-y-0 left-0 w-1.5"
-        style={{ background: heatFill(vm.score / 100) }}
+        style={{ background: heatFill(t) }}
       />
-      {stalled && (
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-0 rounded-xl"
-          style={{ boxShadow: "inset 0 0 0 2px #c0392b" }}
-        />
-      )}
       {/* details affordance */}
       <span
         aria-hidden
@@ -160,7 +159,7 @@ function ProbeCard({ vm, onOpen }: { vm: ProbeCardVM; onOpen: () => void }) {
           <TagBadge tag={vm.rootCause} />
         </div>
         <div>
-          <span className="tabular-nums text-lg font-bold" style={{ color: frictionColor(vm.score) }}>
+          <span className="tabular-nums text-lg font-bold" style={{ color: "#0d366b" }}>
             {vm.score.toFixed(1)}
           </span>
           <span className="ml-1 text-[10px] uppercase tracking-wide text-muted-foreground">friction</span>
@@ -332,7 +331,7 @@ function ProbeModal({ vm, onClose }: { vm: ProbeCardVM; onClose: () => void }) {
             <div className="text-right">
               <span
                 className="tabular-nums text-xl font-bold"
-                style={{ color: frictionColor(vm.score) }}
+                style={{ color: "#0d366b" }}
               >
                 {vm.score.toFixed(1)}
               </span>
