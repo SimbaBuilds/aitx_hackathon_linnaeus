@@ -24,7 +24,7 @@ export function DeltaView() {
     <div className="space-y-6">
       <div>
         <div className="flex items-baseline gap-3 border-b border-border pb-2.5">
-          <span className="font-serif text-lg italic text-muted-foreground">Plate IV</span>
+          <span className="font-serif text-lg italic text-muted-foreground">Plate III</span>
           <h2 className="text-2xl">Specimen Comparison</h2>
           <span className="ml-auto font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
             Before → After
