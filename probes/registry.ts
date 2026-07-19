@@ -300,6 +300,49 @@ const synthNxtyouWiring: ProbeDefinition = {
   completedTag: "none",
 };
 
+// ── Henry probe: can an agent take a user bug report all the way to a fix? ────
+// The codebase-side analog of the billing regression — it measures the operability
+// of the DEV workflow: report → locate → root-cause → proposed fix. READ-ONLY
+// (stops at the proposed diff; never opens a PR — L15/scope). Backed by a REAL
+// production run of this exact flow via SKMD's Quo→Juniper→Claude Code pipeline
+// (henry_quo_e2e.PNG: "found root cause of Henry's misleading clearance-approval
+// error … pushed to claude/practical-johnson-480669"). The probe measures the
+// friction that stood in the way; the screenshot proves the org can actually close
+// it. NOT in BATTERY_IDS (keeps the banked 5-probe board intact); run explicitly:
+//   npx tsx scripts/run-audit.ts report-to-pr
+const reportToPr: ProbeDefinition = {
+  id: "report-to-pr",
+  category: "report-to-pr",
+  kind: "universal",
+  instanceSpec: null,
+  systemPrompt:
+    "You are an on-call engineer receiving a bug report from a NON-TECHNICAL user " +
+    "and driving it toward a fix. Use the repo surface tools to locate the code, " +
+    "reason about the logic, and identify the root cause. You are READ-ONLY: you " +
+    "PROPOSE a fix, you do NOT modify or push anything. Cite the exact files you " +
+    "rely on. Finish your final message with EXACTLY one line: " +
+    "'FIX-READY: <file>:<symbol> — <one-line change>' if you located a concrete " +
+    "fix, or 'BLOCKED: <what stopped you>' if you could not get from the report to code.",
+  userPrompt: () =>
+    'A client (Henry) reported via the Quo business-messaging inbox: "I tried to ' +
+    'approve a peptide clearance and got an error saying the approval FAILED — but ' +
+    'it looks like it actually went through." Trace this to the code: find where the ' +
+    "clearance-approval flow emits that message, determine why the error is " +
+    "misleading (the mismatch between the shown status and the real outcome), and " +
+    "propose a specific fix.",
+  reachedCheckpoint: (ctx) =>
+    okMatch(ctx, /clearance|approv|peptide|error|exception|raise|throw|status/),
+  didProbeSucceed: (ctx) => {
+    const text = ctx.messages
+      .filter((m) => m.role === "assistant")
+      .map((m) => m.content ?? "")
+      .join("\n");
+    return /FIX-READY:/i.test(text) && !/BLOCKED:/i.test(text);
+  },
+  failureTag: "missing-doc", // no mapping from a user-facing error → the code that emits it
+  completedTag: "none",
+};
+
 export const PROBE_REGISTRY: Record<string, ProbeDefinition> = {
   [authBoundary.id]: authBoundary,
   [designerContribute.id]: designerContribute,
@@ -310,6 +353,7 @@ export const PROBE_REGISTRY: Record<string, ProbeDefinition> = {
   [synthOwnershipMap.id]: synthOwnershipMap,
   [synthBillingRollout.id]: synthBillingRollout,
   [synthNxtyouWiring.id]: synthNxtyouWiring,
+  [reportToPr.id]: reportToPr,
 };
 
 /** The synthesized org-level board: 2 surface-forcing (no-owner) + 1 repo contrast. */

@@ -6,7 +6,7 @@
 //   npx tsx scripts/run-audit.ts billing-regression   # one probe
 //
 // Candle selection (Contract B): if CANDLE_BASE_URL is set → the pinned vLLM
-// Nemotron (a MEASURED run); else the dev stand-in (Opus 4.8) needing
+// Nemotron (a MEASURED run); else the dev stand-in (Haiku 4.5) needing
 // ANTHROPIC_API_KEY.  Reads .env.local.  Writes a JSON artifact under
 // .audit-output/ and prints a per-probe friction summary.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -57,7 +57,7 @@ async function main(): Promise<void> {
   process.env.REPO_PATH = repoPath; // surfaces read this
 
   const candle = createCandle();
-  const mode = candle.isProd ? "PROD (pinned Nemotron candle — MEASURED)" : "DEV (Opus 4.8 stand-in)";
+  const mode = candle.isProd ? "PROD (pinned Nemotron candle — MEASURED)" : "DEV (Haiku 4.5 stand-in)";
 
   // Guard: a run needs a usable candle.
   if (!candle.isProd && !process.env.ANTHROPIC_API_KEY) {

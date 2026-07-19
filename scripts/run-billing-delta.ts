@@ -83,7 +83,7 @@ async function main(): Promise<void> {
   const afterRunId = `run_after_${stamp}`;
 
   console.log(`\n▶ Billing regression delta — target=${target}`);
-  console.log(`  candle: ${candle.isProd ? "PROD (vLLM Nemotron — MEASURED)" : "DEV (Opus 4.8)"}  model=${candle.spec.model}`);
+  console.log(`  candle: ${candle.isProd ? "PROD (vLLM Nemotron — MEASURED)" : "DEV (Haiku 4.5)"}  model=${candle.spec.model}`);
   console.log(`  surfaces: ${surfaceStatus().map((s) => `${s.kind}:${s.access_status}`).join("  ")}\n`);
 
   console.log("  running BEFORE (medspa/docuspa scope)…");
