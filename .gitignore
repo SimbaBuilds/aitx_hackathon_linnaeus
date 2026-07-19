@@ -55,3 +55,6 @@ supabase/.temp
 # browser automation artifacts
 .playwright-mcp/
 jupyter-state-*.png
+
+# Dev-candle validation board (holds live identifiers; never the demo source)
+results/dev_synth_board.json

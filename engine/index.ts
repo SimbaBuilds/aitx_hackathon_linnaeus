@@ -26,6 +26,12 @@ export interface RunProbeOptions {
    * regression scoped two ways) where the instance is fixed, not authored.
    */
   instanceSpec?: string;
+  /**
+   * Called with the full transcript just before the Finding is returned. Lets a
+   * caller capture the candle's final verdict / trace without changing the return
+   * type. No-op for callers that omit it.
+   */
+  onFinish?: (messages: ChatMessage[]) => void;
 }
 
 function makeRunId(target: string, probeId: string): string {
@@ -116,6 +122,8 @@ export async function runProbe(
   const vector = recorder.toVector(completed);
   const signals: RunSignals = drive.signals;
   const rootCause = classifyRootCause(probe, vector, signals);
+
+  opts.onFinish?.(drive.messages);
 
   return buildFinding(
     runId,

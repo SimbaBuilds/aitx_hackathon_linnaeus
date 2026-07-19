@@ -89,12 +89,21 @@ async function main(): Promise<void> {
   process.env.REPO_PATH =
     process.env.REPO_PATH ?? "/Users/cameronhightower/Software_Projects/SKMD";
 
-  if (!process.env.CANDLE_BASE_URL) {
+  // The board of RECORD must be Nemotron-measured. Dev mode is allowed ONLY for
+  // pipeline validation (LINNAEUS_ALLOW_DEV=1) and NEVER overwrites the Nemotron
+  // board — it writes to results/dev_synth_board.json and is not the demo source.
+  const allowDev = process.env.LINNAEUS_ALLOW_DEV === "1";
+  if (!process.env.CANDLE_BASE_URL && !allowDev) {
     console.error(
       "✗ CANDLE_BASE_URL not set — this board MUST be measured by the Nemotron candle,\n" +
-        "  not the dev stand-in. Bring the Brev/vLLM box up and set CANDLE_BASE_URL.",
+        "  not the dev stand-in. Bring the Brev/vLLM box up and set CANDLE_BASE_URL,\n" +
+        "  or set LINNAEUS_ALLOW_DEV=1 to run a DEV validation board (separate file).",
     );
     process.exit(1);
+  }
+  if (allowDev) {
+    // Force the dev (Anthropic) candle even if a stale/unreachable CANDLE_BASE_URL lingers.
+    delete process.env.CANDLE_BASE_URL;
   }
 
   // Auto-refresh Google creds so Gmail/Drive are live regardless of when the last
@@ -130,13 +139,27 @@ async function main(): Promise<void> {
   console.log(`  surfaces: ${status.map((s) => `${s.kind}:${s.access_status}`).join("  ")}`);
   console.log(`  probes:   ${SYNTH_BOARD_IDS.join(", ")}\n`);
 
-  const findings: Array<Finding & { _derived: { friction_score: number; surfaces_hit: string[]; tool_calls_by_surface: Record<string, number> } }> = [];
+  const findings: Array<
+    Finding & {
+      verdict: string;
+      _derived: { friction_score: number; surfaces_hit: string[]; tool_calls_by_surface: Record<string, number> };
+    }
+  > = [];
 
   for (const id of SYNTH_BOARD_IDS) {
     activeProbe = id;
     const before = callLog.length;
     process.stdout.write(`  ▸ ${id} … `);
-    const finding = await runProbe(id, "SKMD", tools, candle);
+    let verdict = "";
+    const finding = await runProbe(id, "SKMD", tools, candle, {
+      onFinish: (messages) => {
+        const text = messages
+          .filter((m) => m.role === "assistant")
+          .map((m) => m.content ?? "")
+          .join("\n");
+        verdict = text.match(/(OWNER|ROLLOUT|WIRING):.*/i)?.[0]?.trim() ?? "";
+      },
+    });
 
     const mine = callLog.slice(before).filter((e) => e.probe === id);
     const bySurface: Record<string, number> = {};
@@ -146,6 +169,7 @@ async function main(): Promise<void> {
 
     findings.push({
       ...finding,
+      verdict,
       _derived: { friction_score: score, surfaces_hit: surfacesHit, tool_calls_by_surface: bySurface },
     });
 
@@ -176,7 +200,11 @@ async function main(): Promise<void> {
 
   const outDir = join(process.cwd(), "results");
   mkdirSync(outDir, { recursive: true });
-  const outFile = join(outDir, "nemotron_synth_board.json");
+  // Prod (Nemotron) → the board of record. Dev → a clearly-separate validation file.
+  const outFile = join(
+    outDir,
+    candle.isProd ? "nemotron_synth_board.json" : "dev_synth_board.json",
+  );
   writeFileSync(outFile, JSON.stringify(out, null, 2));
   console.log(`\n✓ wrote ${outFile}\n`);
 }
