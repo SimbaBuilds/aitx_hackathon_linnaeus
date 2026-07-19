@@ -102,9 +102,11 @@ export function createCandle(cfg: CandleConfig = {}): CandleClient {
       }
     : {
         baseURL: "https://api.anthropic.com/v1/",
-        // M1 (revised 2026-07-18): dev stand-in = Sonnet 5 (~2.5x cheaper than
-        // Opus, near-Opus tool-use). Dev-only; measured runs go to Nemotron.
-        model: cfg.model ?? process.env.DEV_CANDLE_MODEL ?? "claude-sonnet-5",
+        // M1 (revised 2026-07-18): dev stand-in = Haiku 4.5 (cheapest tool-capable
+        // Claude — $1/$5 per MTok). Dev-only, for pipeline iteration; every measured/
+        // scored run goes to the pinned Nemotron candle. Override via DEV_CANDLE_MODEL
+        // (e.g. claude-sonnet-5) if a probe needs more reasoning during dev.
+        model: cfg.model ?? process.env.DEV_CANDLE_MODEL ?? "claude-haiku-4-5",
         apiKey: cfg.apiKey ?? process.env.ANTHROPIC_API_KEY ?? "",
         quant: null,
       };

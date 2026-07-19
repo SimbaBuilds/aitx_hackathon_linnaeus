@@ -53,7 +53,7 @@ Then **Access** tab → expose `8000` → send me the URL. (NVFP4: swap the tag 
 </details>
 
 ### 2. Dev-candle key (M1 — cheap model for engine dev) — ✅ key provided
-The engine develops against **Claude Sonnet 5** (`claude-sonnet-5`; revised 2026-07-18, was Opus 4.8 — ~2.5× cheaper, near-Opus tool-use) through the same seam, then swaps to the vLLM Nemotron endpoint for the **measured** runs.
+The engine develops against **Claude Haiku 4.5** (`claude-haiku-4-5`; revised 2026-07-18, was Sonnet 5 — cheapest tool-capable Claude, $1/$5 per MTok; overridable via `DEV_CANDLE_MODEL`) through the same seam, then swaps to the vLLM Nemotron endpoint for the **measured** runs.
 - **`ANTHROPIC_API_KEY`** is in `.env.local`. *(One-time: rotate it if it was ever committed.)*
 - **⚠️ The headline delta must be measured on Nemotron, not Sonnet** — Sonnet is dev-only. See M1 guardrail in `implementation_plan.md`.
 

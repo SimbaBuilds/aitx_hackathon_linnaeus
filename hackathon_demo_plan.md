@@ -17,21 +17,77 @@ Everything below is **supporting** — do not let it upstage the delta.
 
 ---
 
-## ⭐ The live-run opportunity (vLLM A/B) — the upside play
+## Booth format — 3-hour science fair (prerecorded-first)
 
-The event judges *"real, working systems — not slide decks."* We have a measured vLLM efficiency A/B (**200s sequential → 113s concurrent = 1.77×**, same H100/model/battery). The strongest possible use is to **run it LIVE** during the sponsor-tech / vLLM beat rather than show a static chart.
+**Reality:** Judging + Hack Fair is ~3 hours of science-fair / walk-up traffic (Judging 12–3, Hack Fair + public voting 2–4). We are **NOT** running live probes on the NVIDIA box on a loop for 3 hours — the box bills per hour, cold starts are slow, wifi is unreliable, and a hung run at a booth is worse than no run. So the default booth experience is **prerecorded**, with the live box as an occasional *marquee moment*, not the baseline.
 
-**The move:** kick off the concurrent battery (`LINNAEUS_BATTERY_CONCURRENT=1`) in front of the judge and narrate — *"five probes in flight, vLLM's continuous batching packing them onto one H100"* — and let it complete in ~113s. A live completion is worth more than any bar chart here.
+**The booth loop (default, always-on, no box required):**
+- A screen looping the **product UI** walkthrough (heatmap → findings → the +53.7 delta) — the money-shot views, driven from the banked `fixtures/demo.json`. Runs off the deployed web app or a local `next dev`; needs **no GPU**.
+- A short (~60–90s) **screen recording** of the real Nemotron run producing the delta (terminal + UI), so the "it really ran on self-hosted Nemotron" claim is visible without the box being up.
+- The backup slide (`slides/vllm_batching_ab.html`) in the loop or on a second tab.
+
+**Why this is still honest / still scores:** the recording is of a *real* measured run; the banked numbers are real; the web UI is a real working system. "Real working system, not a slide deck" is satisfied by the deployed app + the recording — the live box is upside, not the floor.
+
+### ⭐ The live box — a marquee moment, NOT a 3-hour loop
+
+Bring the box up for a **window**, not the whole fair — e.g. spin it up shortly before the 12 PM judging block and for any judge who explicitly wants to see it live, then let it idle-delete or tear it down. When a serious judge is at the booth and it's worth it:
+
+**The move:** kick off the concurrent battery (`LINNAEUS_BATTERY_CONCURRENT=1`) in front of them and narrate — *"five probes in flight, vLLM's continuous batching packing them onto one H100"* — completing in ~113s. A live completion beats any chart. Also satisfies the vLLM bounty's "functional endpoint doing real work" bar in person.
 
 **Requirements / contingencies:**
-- **Box must be up.** Redeploy ~15 min before the 12 PM judging window via `scripts/serving/run_vllm.sh` (≈15 min). This is the *second* reason to bring the box back (first = the candle must be live to qualify for the vLLM bounty at all).
-- **Safe fallback:** the banked number. If the box, wifi, or timing misbehaves, cut to `results/vllm_batching_ab.json` + the backup slide. Never let a live run that hangs eat demo time — set a mental 2-min cap, then fall back.
-- **Pre-warm:** do one throwaway concurrent run after redeploy so weights/KV are warm and the judge-facing run is clean (~113s, not a cold-start outlier).
-- **Command to have ready:**
+- **Redeploy** via `scripts/serving/run_vllm.sh` (~15 min) when you want the live window; confirm `curl <url>/v1/models` lists `nemotron` and swap the new URL into `.env.local`.
+- **Pre-warm:** one throwaway concurrent run so the judge-facing run is warm (~113s, not a cold-start outlier).
+- **Safe fallback = the prerecorded content above.** If the box/wifi/timing misbehaves, cut to the recording + `results/vllm_batching_ab.json` + the slide. Mental 2-min cap on any live attempt, then fall back — never let a hung run eat booth time.
+- **Commands ready:**
   ```bash
-  LINNAEUS_BATTERY_CONCURRENT=1 npx tsx scripts/run-audit.ts
+  LINNAEUS_BATTERY_CONCURRENT=1 npx tsx scripts/run-audit.ts   # concurrent (marquee)
+  npx tsx scripts/run-audit.ts                                 # sequential (contrast)
   ```
-  (Sequential default = `npx tsx scripts/run-audit.ts` — have both, so you can show the contrast if asked.)
+- **Cost control:** the box can't stop/start (delete-only) and auto-deleted overnight when credits ran out — so treat each spin-up as a paid, time-boxed window; don't leave it running idle between judges.
+
+---
+
+## Proving it's really Nemotron-on-vLLM (the screens to have ready)
+
+The credibility problem: judges see lots of "powered by X" that's a hosted API underneath. You don't *claim* it — you show the serving layer's own telemetry, which a wrapper can't fake. **Have these open and arranged before judging so any of them is one click away:**
+
+| # | Screen | Command / source | What it proves |
+|---|---|---|---|
+| 1 | **vLLM server log, live** | on the box: `tail -f /home/shadeform/vllm.log` (that's where `run_vllm.sh` writes it) | The strongest artifact. vLLM prints `Running: 5 reqs, Waiting: 0, GPU KV cache usage: 34%, gen throughput: … tok/s`. **`Running: 5` = continuous batching happening live.** A hosted API can't produce this. |
+| 2 | **Model identity** | `curl <url>/v1/models` | Returns `nemotron`, `root: nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-FP8`, `max_model_len: 65536`. The server stating its own identity. |
+| 3 | **GPU proof** | on the box: `watch -n1 nvidia-smi` | The H100, the vLLM process holding ~32 GB VRAM, util spiking to ~90% when the battery fires. Hardware-level. |
+| 4 | **The runtime panel** (build item) | the app, wired to vLLM `/metrics` + `/v1/models` | The polished version of 1–3 — see below. |
+
+**How to split-screen it on your laptop:** open a terminal and SSH into the box, tail the log, and arrange it next to the browser —
+```bash
+ssh <brev-box>  'tail -f /home/shadeform/vllm.log'    # or `brev shell <name>` then tail -f
+watch -n1 nvidia-smi                                   # third small window, optional
+```
+Layout: browser (app + runtime panel) on one half, `tail -f` terminal on the other, `nvidia-smi` in a corner. The Brev/Jupyter **web terminal** works as a fallback if SSH is fussy (it's just a browser tab). **Practice this arrangement once in the morning** so it's muscle memory at the booth.
+
+### Candle card + runtime panel (build items — wire to REAL telemetry, not app counters)
+
+The whole point is that a judge trusts the numbers *because they come from vLLM, not from our app*. So every widget reads from the server:
+
+- **Candle card** (small, persistent, always-on): `nemotron · NVIDIA-Nemotron-3-Nano-30B-A3B · FP8 · vLLM · H100 · 65k ctx · seed 42 · temp 0`, with a live/offline dot from `/v1/models`. On-brand as an instrument "calibration readout." When the box is down it shows the pinned config from banked run metadata, labelled "as-measured." **Cheap — build first.**
+- **Runtime panel** (bigger, marquee): live **probes-in-flight** gauge from vLLM `/metrics` `num_requests_running` (when it reads 5, *the server said 5*), **KV-cache usage %** (`gpu_cache_usage_perc` — literally PagedAttention filling), tokens/s, and a scrolling **agent-action stream** (each probe's `repo_read`/grep tool calls). This makes the batching bounty story *visual* — judges watch `num_requests_running` jump 1→5 instead of hearing about it. Also scores rubric "technical depth."
+- **Replay mode** (so the panel isn't dead when the box is down): play back a telemetry trace recorded during the morning run. Record the panel live in the AM → own the footage all afternoon.
+
+---
+
+## Sunday morning runbook (before judging)
+
+The plan, start to finish. Do this once in the morning while the box is up, then you're covered for the whole fair:
+
+1. **Bring the NVIDIA box up** → run `scripts/serving/run_vllm.sh` (~15 min). Confirm `curl <url>/v1/models` lists `nemotron`; **swap the new URL into `.env.local`** (and note it in `COORDINATION.md` for the build session).
+2. **Pre-warm:** one throwaway `LINNAEUS_BATTERY_CONCURRENT=1 npx tsx scripts/run-audit.ts` so later runs aren't cold-start outliers.
+3. **RECORD the full run** (this is the ambient/fallback content you keep all day):
+   - The **runtime UI** (candle card + panel) during a concurrent battery — `num_requests_running` → 5, KV cache filling.
+   - The **vLLM log** (`tail -f`) scrolling with `Running: 5 reqs` during the same run.
+   - The **money-shot delta** in the product UI (16.8 → 70.5).
+   - Keep it tight (~60–90s each, or one continuous ~2-min capture).
+4. **Arrange the proof screens** (log tail / nvidia-smi / `/v1/models` / app) and practice the split-screen layout once.
+5. **Leave the box up through the core judging window (12–3)** for the NVIDIA/vLLM bounty judges — have the vLLM log ready to open live when they come by. Outside that window, lean on the recording; kill the box if idle to control cost.
 
 ---
 
@@ -40,7 +96,7 @@ The event judges *"real, working systems — not slide decks."* We have a measur
 - **Submission form** — efficiency blurb (below) in the vLLM bounty narrative + the Frontier-Factor / Performance box. ← primary, earns points.
 - **One appendix/backup slide** — two-bar chart, pulled up in Q&A or the sponsor beat. NOT a main-arc slide.
 - **Talking points** — one crisp verbal line (already in `talking_points.md` §Sponsor tech).
-- **Main product UI** — NO. It's plumbing, not the audit insight. At most a subtle candle-telemetry footer; low priority.
+- **Main product UI** — the A/B *chart* stays out (it's plumbing, not the audit insight). BUT the **candle card + runtime panel** (above) DO belong in the app — they're proof-of-stack, not the benchmark, and they carry the "it's really Nemotron/vLLM" credibility live.
 
 ### Submission efficiency blurb (paste-ready, ~2 lines)
 
@@ -64,7 +120,17 @@ All demo surfaces + the Nemotron writeup are de-identified: **SKMD → "Teleheal
 
 ## Open demo TODOs
 
-- [ ] Redeploy the candle before judging (bounty qualification + live-run) — `scripts/serving/run_vllm.sh`, pre-warm with one throwaway concurrent run.
-- [ ] Build the single backup slide (spec above).
+**Build (before Sunday):**
+- [ ] **Candle card** — persistent instrument readout wired to `/v1/models` (build first, cheap).
+- [ ] **Runtime panel** — probes-in-flight + KV-cache % + agent-action stream, wired to vLLM `/metrics` (marquee; after the money-shot views are solid).
+- [ ] **Replay mode** for the panel (play back a recorded telemetry trace when the box is down).
+- [x] ~~Build the single backup slide~~ → `slides/vllm_batching_ab.html`.
+
+**Sunday morning (box up):**
+- [ ] Redeploy candle (`scripts/serving/run_vllm.sh`), swap new URL into `.env.local` + note in `COORDINATION.md`, pre-warm.
+- [ ] **Record** the runtime UI + vLLM log + money-shot delta during a live run (ambient/fallback content for the whole fair).
+- [ ] Arrange + practice the split-screen proof layout (app / `tail -f vllm.log` / `nvidia-smi`).
+
+**Submission:**
 - [ ] Paste the efficiency blurb into the submission form (vLLM + Frontier/Performance).
-- [ ] Decide: attempt the live A/B run, or banked-number-only? (Upside vs timing risk — box-up is the gate either way.)
+- [ ] Anonymize any new demo/submission artifact (Telehealth Monorepo map above).
