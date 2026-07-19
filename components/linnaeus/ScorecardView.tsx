@@ -20,12 +20,20 @@ const operability = (friction: number) => 100 - friction;
 const mean = (xs: number[]) => (xs.length ? xs.reduce((s, x) => s + x, 0) / xs.length : 0);
 const round = (x: number) => Math.round(x);
 
-// Which sub-product a probe belongs to — derived from the module it exercised
-// (repo path prefix). Org-level cross-surface probes touch no single module.
-const groupOf = (probeId: string): string => {
-  const cell = heatCells.find((c) => c.probe === probeId);
-  return cell ? cell.path.split("/")[0] : "cross-surface";
+// Which ORG FUNCTION (department) a probe belongs to. This re-slices the SAME
+// real friction scores by the accountable team instead of by code module, so the
+// scorecard reads like an org chart — no scores are invented, only regrouped.
+const DEPARTMENT: Record<string, string> = {
+  "billing-regression": "Billing & Revenue",
+  "synth-billing-rollout": "Billing & Revenue",
+  "onboard-client": "Growth / D2C",
+  "synth-nxtyou-wiring": "Growth / D2C",
+  "synth-ownership-map": "Clinical & Protocol",
+  "live-vs-legacy-pdf": "Clinical & Protocol",
+  "designer-contribute": "Design / Frontend",
+  "auth-boundary": "Platform & Security",
 };
+const departmentOf = (probeId: string): string => DEPARTMENT[probeId] ?? "Other";
 
 const INK = "#0d366b"; // deep prussian (headline blue)
 const BLUE = "#2e5e9e"; // fluent blue
@@ -57,7 +65,7 @@ const groupStats: GroupStat[] = (() => {
   const byGroup = new Map<string, number[]>();
   const stallsByGroup = new Map<string, number>();
   for (const f of afterFindings) {
-    const g = groupOf(f.probe_id);
+    const g = departmentOf(f.probe_id);
     (byGroup.get(g) ?? byGroup.set(g, []).get(g)!).push(scoreOf(f));
     if (f.status !== "completed") stallsByGroup.set(g, (stallsByGroup.get(g) ?? 0) + 1);
   }
@@ -71,12 +79,8 @@ const groupStats: GroupStat[] = (() => {
       critical: op < 35,
     };
   });
-  // sub-products by operability desc, cross-surface always last (it's the aggregate lens).
-  return stats.sort((a, b) => {
-    if (a.group === "cross-surface") return 1;
-    if (b.group === "cross-surface") return -1;
-    return b.op - a.op;
-  });
+  // departments by operability desc (worst-run functions surface at the bottom).
+  return stats.sort((a, b) => b.op - a.op);
 })();
 
 // ── Operability over time ──────────────────────────────────────────────────────
@@ -104,7 +108,7 @@ const orgSeries: Series = {
   measuredThru: NOW_IDX,
 };
 const billingSeries: Series = {
-  name: "D2C billing",
+  name: "Billing & Revenue",
   color: "#7aa0c8",
   primary: false,
   pts: [beforeOp, nowOp, 48, 66, 80], // real before/after; rest projected
@@ -112,8 +116,9 @@ const billingSeries: Series = {
 };
 const seriesList = [billingSeries, orgSeries]; // billing under, org on top
 
+// Department names are generic org functions (no live org identifiers to redact).
 function label(g: string) {
-  return g === "cross-surface" ? "cross-surface" : anonymize(g);
+  return g;
 }
 
 // ── Small pieces ───────────────────────────────────────────────────────────────
@@ -153,21 +158,21 @@ function GroupBars() {
   return (
     <div className="rounded-xl bg-card p-5 ring-1 ring-border">
       <div className="mb-1 flex items-baseline justify-between">
-        <h3 className="text-base font-semibold">Operability by group</h3>
+        <h3 className="text-base font-semibold">Operability by org function</h3>
         <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
           higher = more legible
         </span>
       </div>
       <p className="mb-4 text-xs text-muted-foreground">
-        Current-state rollup per sub-product. <span className="font-mono">n</span> = probes run
-        against that group.
+        The same measured probes, rolled up by the accountable team.{" "}
+        <span className="font-mono">n</span> = probes run against that function.
       </p>
       <div className="space-y-3">
         {groupStats.map((g) => (
           <div key={g.group} className="flex items-center gap-3">
-            <div className="w-40 shrink-0 whitespace-nowrap text-right font-mono text-xs text-foreground">
+            <div className="w-48 shrink-0 whitespace-nowrap text-right text-xs text-foreground">
               {label(g.group)}
-              <span className="ml-1 text-muted-foreground">· n{g.n}</span>
+              <span className="ml-1 font-mono text-muted-foreground">· n{g.n}</span>
             </div>
             <div className="relative h-6 flex-1 overflow-hidden rounded-md bg-muted">
               <div
@@ -358,7 +363,7 @@ export function ScorecardView() {
         <p className="mt-2.5 max-w-2xl text-sm text-muted-foreground">
           How legibly an agent can operate across{" "}
           <span className="font-medium text-foreground">{anonymize(org)}</span> — rolled up from the
-          current probe battery, broken out by sub-product, and tracked over time.
+          current probe battery, broken out by org function, and tracked over time.
         </p>
       </div>
 
