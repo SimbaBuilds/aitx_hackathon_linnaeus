@@ -54,7 +54,7 @@ export function TriggerView() {
           Linnaeus doesn&rsquo;t wait to be asked. An always-on classifier watches the org&rsquo;s
           event surfaces; when a change could alter how legibly an agent can operate, it
           <span className="text-foreground"> wakes and re-audits</span> — and catches the regression
-          the change introduced. Triage runs on a cheap model; only a real hit spends the standard candle.
+          the change introduced.
         </p>
       </div>
 
