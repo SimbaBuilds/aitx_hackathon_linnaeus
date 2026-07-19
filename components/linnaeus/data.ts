@@ -37,6 +37,7 @@ interface DeltaDef {
   friction_delta: number;
 }
 interface DemoShape {
+  org?: string;
   target: string;
   surfaces: Surface[];
   probes: Probe[];
@@ -89,7 +90,8 @@ const synthProbes: Probe[] = synthBoard.findings.map((f) => {
   };
 });
 
-export const target = demo.target;
+export const org = demo.org ?? demo.target; // the audited organization (the specimen)
+export const target = demo.target; // the codebase alias (one surface of the org)
 export const surfaces: Surface[] = demo.surfaces;
 export const probes: Probe[] = [...demo.probes, ...synthProbes];
 export const runs: Run[] = demo.runs;

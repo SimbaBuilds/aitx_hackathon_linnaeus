@@ -10,8 +10,11 @@ import {
   probeLabel,
   scoreOf,
   taskTextOf,
+  traceOf,
+  verdictOf,
   type HeatCell,
   type OrgProbe,
+  type TraceStep,
 } from "@/components/linnaeus/data";
 import { heatFill, heatInk, frictionColor } from "@/components/linnaeus/colors";
 import { StatusBadge, TagBadge, RemediationBadge } from "@/components/linnaeus/ui";
@@ -241,10 +244,23 @@ function Legend() {
   );
 }
 
-function OrgProbeCard({ p }: { p: OrgProbe }) {
+function OrgProbeCard({ p, onOpen }: { p: OrgProbe; onOpen: () => void }) {
   return (
-    <div className="flex flex-col gap-3 rounded-xl bg-card p-4 ring-1 ring-border">
-      <div className="flex items-start justify-between gap-2">
+    <button
+      type="button"
+      onClick={onOpen}
+      className="group relative flex cursor-pointer flex-col gap-3 rounded-xl bg-card p-4 text-left ring-1 ring-border transition-transform duration-150 hover:-translate-y-0.5 hover:ring-foreground/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground"
+    >
+      {/* details affordance */}
+      <span
+        aria-hidden
+        className="absolute right-3 top-3 text-muted-foreground opacity-40 transition-opacity group-hover:opacity-90"
+      >
+        <svg viewBox="0 0 16 16" width="13" height="13" fill="none">
+          <path d="M6 3.5L10.5 8 6 12.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </span>
+      <div className="flex items-start justify-between gap-2 pr-5">
         <span className="font-mono text-sm font-semibold">{p.category}</span>
         <StatusBadge status={p.status} />
       </div>
@@ -278,12 +294,165 @@ function OrgProbeCard({ p }: { p: OrgProbe }) {
           <span className="ml-1 text-[10px] uppercase tracking-wide text-muted-foreground">friction</span>
         </div>
       </div>
+    </button>
+  );
+}
+
+// ── Cross-surface trace rendering (ported from FindingsView; kept local so the two
+//    parallel sessions don't fight over shared exports) ─────────────────────────
+const SURFACE_COLOR: Record<string, string> = {
+  repo: "#6b7280",
+  gmail: "#c0392b",
+  drive: "#2f6fed",
+  notion: "#111827",
+  rds: "#0ca30c",
+};
+function SurfacePill({ surface }: { surface: string }) {
+  const c = SURFACE_COLOR[surface] ?? "#6b7280";
+  return (
+    <span
+      className="inline-flex min-w-[52px] justify-center rounded px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wide"
+      style={{ background: `${c}1a`, color: c }}
+    >
+      {surface}
+    </span>
+  );
+}
+
+function TraceStepRow({ step }: { step: TraceStep }) {
+  return (
+    <li className="flex items-start gap-2 py-1">
+      <SurfacePill surface={step.surface} />
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+          <span className="font-mono text-[11px] text-foreground">{step.tool}</span>
+          {step.query && (
+            <span className="font-mono text-[11px] text-muted-foreground">
+              · {step.query}
+            </span>
+          )}
+          <span
+            className="font-mono text-[10px]"
+            style={{ color: step.ok ? "#0ca30c" : "#b06a00" }}
+          >
+            {step.ok ? "ok" : "no result"}
+          </span>
+          {step.isCrossSurfaceReach && (
+            <span className="rounded bg-[#c0392b]/10 px-1.5 py-0.5 text-[10px] font-semibold text-[#c0392b]">
+              ← reached {step.surface}
+            </span>
+          )}
+        </div>
+        {step.note && (
+          <div className="truncate font-mono text-[10px] text-muted-foreground">{step.note}</div>
+        )}
+      </div>
+    </li>
+  );
+}
+
+function TracePanel({ probeId }: { probeId: string }) {
+  const steps = traceOf(probeId);
+  const verdict = verdictOf(probeId);
+  if (steps.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground">No captured trace for this probe.</p>
+    );
+  }
+  const repoSteps = steps.filter((s) => s.surface === "repo").length;
+  const reachedNonRepo = steps.some((s) => s.isCrossSurfaceReach);
+  return (
+    <div className="space-y-3 rounded-lg bg-muted/30 p-4">
+      <div className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+        What the candle did — {steps.length} tool calls
+        {reachedNonRepo && `, reached beyond the repo (${repoSteps} repo searches first)`}
+      </div>
+      <ol className="divide-y divide-border/60">
+        {steps.map((s, i) => (
+          <TraceStepRow key={i} step={s} />
+        ))}
+      </ol>
+      {verdict && (
+        <div className="flex items-start gap-2 rounded-md border border-[#c0392b]/30 bg-[#c0392b]/[0.04] px-3 py-2">
+          <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#c0392b]">
+            verdict
+          </span>
+          <span className="font-mono text-[12px] text-foreground">{verdict}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function OrgProbeModal({ p, onClose }: { p: OrgProbe; onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const remediation = p.finding.remediation;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative z-10 max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-card shadow-2xl ring-1 ring-border">
+        {/* header */}
+        <div className="flex items-start justify-between gap-4 border-b border-border p-5">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="font-mono text-base font-semibold">{p.category}</span>
+            <StatusBadge status={p.status} />
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            aria-label="Close"
+          >
+            <svg viewBox="0 0 16 16" width="16" height="16" fill="none">
+              <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="space-y-4 p-5">
+          {p.task && (
+            <div className="rounded-lg border-l-2 border-border bg-muted/30 px-3 py-2">
+              <div className="mb-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                the task the candle ran
+              </div>
+              <p className="text-sm italic leading-relaxed text-foreground/90">&ldquo;{p.task}&rdquo;</p>
+            </div>
+          )}
+
+          {/* the cross-surface trace */}
+          <TracePanel probeId={p.probeId} />
+
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-muted-foreground">root cause</span>
+            <TagBadge tag={p.rootCause} />
+          </div>
+
+          {remediation && (
+            <div className="rounded-lg bg-muted/40 p-3 ring-1 ring-border">
+              <div className="mb-1.5 flex items-center gap-2">
+                <RemediationBadge type={remediation.type} />
+                <span className="break-all font-mono text-[11px] text-muted-foreground">
+                  {remediation.target}
+                </span>
+              </div>
+              <p className="text-sm text-foreground/90">{remediation.content}</p>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
 
 export function HeatmapView() {
   const [selected, setSelected] = useState<HeatCell | null>(null);
+  const [selectedOrg, setSelectedOrg] = useState<OrgProbe | null>(null);
   const cells = [...heatCells].sort((a, b) => b.heat - a.heat);
   const confirmed = heatCells.filter((c) => c.probe_stalled).length;
 
@@ -294,7 +463,7 @@ export function HeatmapView() {
         <div>
           <div className="flex items-baseline gap-3 border-b border-border pb-2.5">
             <span className="font-serif text-lg italic text-muted-foreground">Plate I</span>
-            <h2 className="text-2xl">Operability Herbarium</h2>
+            <h2 className="text-2xl">Single Surface Probes</h2>
             <span className="ml-auto font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
               Codebase
             </span>
@@ -334,12 +503,12 @@ export function HeatmapView() {
               These probes operate across the org&rsquo;s real surfaces (repo, email, notes) — not just
               the code. They all <span className="text-[#c0392b]">stall</span>: the knowledge is real
               but scattered and unowned, so an agent can&rsquo;t assemble it from records alone. That
-              negative space is the finding.
+              negative space is the finding. All probes generated by the engine.
             </p>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {orgProbes.map((p) => (
-              <OrgProbeCard key={p.probeId} p={p} />
+              <OrgProbeCard key={p.probeId} p={p} onOpen={() => setSelectedOrg(p)} />
             ))}
           </div>
         </div>
@@ -376,6 +545,7 @@ export function HeatmapView() {
       </div>
 
       {selected && <DetailModal cell={selected} onClose={() => setSelected(null)} />}
+      {selectedOrg && <OrgProbeModal p={selectedOrg} onClose={() => setSelectedOrg(null)} />}
     </div>
   );
 }

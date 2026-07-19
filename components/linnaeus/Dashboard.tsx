@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HeatmapView } from "@/components/linnaeus/HeatmapView";
 import { FindingsView } from "@/components/linnaeus/FindingsView";
 import { DeltaView } from "@/components/linnaeus/DeltaView";
-import { afterRun, target } from "@/components/linnaeus/data";
+import { afterRun, org, surfaces } from "@/components/linnaeus/data";
 
 // Linnaea borealis (the twinflower) — Linnaeus's namesake. Two nodding bells.
 function Twinflower() {
@@ -76,8 +76,14 @@ export function Dashboard() {
               Agent Operability Audit
             </div>
             <div className="mt-1 font-mono text-[10.5px] uppercase tracking-[0.16em] text-muted-foreground">
-              Specimen&nbsp;·&nbsp;<span className="font-semibold text-foreground">{target}</span>
+              Specimen&nbsp;·&nbsp;<span className="font-semibold text-foreground">{org}</span>
             </div>
+            {/* <div className="mt-0.5 font-mono text-[10.5px] uppercase tracking-[0.16em] text-muted-foreground">
+              Surfaces&nbsp;·&nbsp;
+              <span className="font-semibold text-foreground">
+                {surfaces.map((s) => s.kind).join(" · ")}
+              </span>
+            </div> */}
             {afterRun && (
               <div className="mt-0.5 font-mono text-[10.5px] uppercase tracking-[0.16em] text-muted-foreground">
                 Candle&nbsp;·&nbsp;<span className="font-semibold text-foreground">{afterRun.candle.model}</span>
