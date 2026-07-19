@@ -9,11 +9,20 @@ import {
 } from "@/components/linnaeus/data";
 import { FRICTION_BAD, FRICTION_GOOD, frictionColor, chip } from "@/components/linnaeus/colors";
 
-// A small clock label (HH:MM) from an ISO timestamp — the "field observation" time.
+// A compact Central-Time date+time label from an ISO timestamp — the "field
+// observation" time. Explicitly rendered in America/Chicago (never the runtime's
+// local zone) with a short tz abbreviation, e.g. "Jul 19, 4:14 AM CDT".
 function clock(ts: string): string {
   const d = new Date(ts);
   if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return d.toLocaleString("en-US", {
+    timeZone: "America/Chicago",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  });
 }
 
 function SourcePill({ source }: { source: string }) {

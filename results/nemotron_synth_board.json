@@ -51,7 +51,12 @@
         "hedging_count": 0
       },
       "root_cause_tag": "no-owner",
-      "remediation": null,
+      "remediation": {
+        "type": "Document",
+        "content": "Record the clinical/protocol sign-off authority in a committed ownership file. Today the approver is named only in email, so neither an agent nor a new hire can establish who signs off a protocol change from the repo alone.",
+        "target": "docs/governance/clinical-signoff-owner.md",
+        "provenance": "candle-inferred (sign-off authority named only in email, not in any committed record)"
+      },
       "_derived": {
         "friction_score": 74,
         "surfaces_hit": [
@@ -79,7 +84,12 @@
         "hedging_count": 0
       },
       "root_cause_tag": "no-owner",
-      "remediation": null,
+      "remediation": {
+        "type": "Document",
+        "content": "Open an owned, tracked task for the fleet-wide weekly-batched-billing rollout. The only record today is an email thread plus an ad-hoc manual fix to two clinics — there is no accountable owner or ticket, so the rollout can't be resumed or audited.",
+        "target": "implementation_plans/weekly-billing-rollout.md",
+        "provenance": "candle-inferred (rollout exists only as an email thread; no tracked task)"
+      },
       "_derived": {
         "friction_score": 86.5,
         "surfaces_hit": [
@@ -109,7 +119,12 @@
         "hedging_count": 0
       },
       "root_cause_tag": "dead-code",
-      "remediation": null,
+      "remediation": {
+        "type": "Delete",
+        "content": "Remove the half-wired d2c_web provider flag (or finish wiring it). The users.is_d2c_web column and the find_available_providers filter exist, but nothing sets the flag and the patient-queue code never branches on it — so it reads as a shippable feature while being dead code.",
+        "target": "telehealth_api — users.is_d2c_web + find_available_providers",
+        "provenance": "candle-inferred (column and filter exist; no setter, no queue branch)"
+      },
       "_derived": {
         "friction_score": 82.5,
         "surfaces_hit": [

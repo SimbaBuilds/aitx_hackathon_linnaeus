@@ -33,7 +33,7 @@ export function DeltaView() {
         <p className="mt-2.5 max-w-2xl text-sm text-muted-foreground">
           Each probe is re-run before and after an org change on the same pinned candle.
           When friction rises, the swing is a regression the audit caught — attributable to
-          the change, since nothing else moved. One card per tracked probe.
+          the organizational change.
         </p>
       </div>
 

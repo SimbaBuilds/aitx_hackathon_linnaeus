@@ -215,7 +215,12 @@
         "hedging_count": 1
       },
       "root_cause_tag": "no-runbook",
-      "remediation": null,
+      "remediation": {
+        "type": "Document",
+        "content": "Write a client-onboarding runbook. The candle onboarded the client but had to reconstruct the sequence across the repo and email because no committed procedure exists — a short checklist (create the client record, wire the required config, confirm they're billable) collapses the friction to near zero.",
+        "target": "docs/runbooks/onboard-client.md",
+        "provenance": "candle-inferred (root cause: no committed onboarding runbook)"
+      },
       "_derived": {
         "friction_score": 27.6,
         "_note": "REAL Nemotron-measured run (full battery 2026-07-18)"

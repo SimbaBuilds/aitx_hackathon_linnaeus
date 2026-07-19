@@ -67,14 +67,14 @@ export function Dashboard() {
           <div>
             <h1 className="text-4xl leading-none">Linnaeus</h1>
             <p className="mt-1.5 font-serif text-sm italic text-muted-foreground">
-              A field guide to agent operability
+              The agent operability governance layer for your organization. 
             </p>
           </div>
         </div>
         <div className="flex items-end gap-4">
           <div className="hidden text-right sm:block">
             <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
-              Agent Operability Audit
+              Agent Operability Platform 
             </div>
             <div className="mt-1 font-mono text-[10.5px] uppercase tracking-[0.16em] text-muted-foreground">
               Specimen&nbsp;·&nbsp;<span className="font-semibold text-foreground">{org}</span>

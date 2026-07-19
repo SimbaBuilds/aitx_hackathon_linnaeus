@@ -12,12 +12,36 @@ import {
   taskTextOf,
   traceOf,
   verdictOf,
-  type HeatCell,
+  hasTrace,
   type OrgProbe,
   type TraceStep,
 } from "@/components/linnaeus/data";
-import { heatFill, heatInk, frictionColor } from "@/components/linnaeus/colors";
+import { heatFill, frictionColor } from "@/components/linnaeus/colors";
 import { StatusBadge, TagBadge, RemediationBadge } from "@/components/linnaeus/ui";
+
+// ── Unified probe card view-model ──────────────────────────────────────────────
+// Both groups (cross-surface org probes and codebase repo probes) render the same
+// card. The VM is built locally from the already-exported primitives.
+type Finding = OrgProbe["finding"];
+type CodeMetrics = {
+  loc: number;
+  cyclomatic: number;
+  coupling: number;
+  dry_violations: number;
+};
+type ProbeCardVM = {
+  group: "cross-surface" | "codebase";
+  probeId: string;
+  label: string;
+  task: string;
+  surfacesHit: string[];
+  score: number;
+  status: OrgProbe["status"];
+  rootCause: OrgProbe["rootCause"];
+  finding: Finding;
+  metrics?: CodeMetrics; // codebase probes only
+  path?: string; // codebase probes only
+};
 
 const base = (p: string) => p.split("/").pop() || p;
 const dir = (p: string) => {
@@ -25,232 +49,79 @@ const dir = (p: string) => {
   return parts.length > 1 ? parts.slice(0, -1).join("/") + "/" : "";
 };
 
-function Cell({ c, onOpen }: { c: HeatCell; onOpen: () => void }) {
-  const stalled = c.probe_stalled != null;
-  const task = c.probe ? taskTextOf(c.probe) : "";
-  return (
-    <button
-      type="button"
-      onClick={onOpen}
-      className="group relative flex min-h-[150px] cursor-pointer flex-col justify-between overflow-hidden rounded-xl p-3.5 text-left ring-1 ring-black/10 transition-transform duration-150 hover:-translate-y-0.5 hover:ring-black/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground dark:ring-white/10"
-      style={{ background: heatFill(c.heat), color: heatInk(c.heat) }}
-    >
-      {stalled && (
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-0 rounded-xl"
-          style={{ boxShadow: "inset 0 0 0 2.5px #c0392b, 0 0 0 1px #c0392b" }}
-        />
-      )}
-      {/* details affordance */}
-      <span
-        aria-hidden
-        className="absolute right-2.5 top-2.5 opacity-40 transition-opacity group-hover:opacity-90"
-      >
-        <svg viewBox="0 0 16 16" width="13" height="13" fill="none">
-          <path d="M6 3.5L10.5 8 6 12.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </span>
-      <div className="relative">
-        <div className="font-mono text-[11px] leading-tight opacity-70">{dir(c.path)}</div>
-        <div className="font-mono text-sm font-semibold leading-tight break-all">{base(c.path)}</div>
-        {task && (
-          <p className="mt-2 line-clamp-3 text-sm italic leading-snug opacity-95">
-            &ldquo;{task}&rdquo;
-          </p>
-        )}
-      </div>
-      <div className="relative flex items-end justify-between gap-2">
-        <div className="tabular-nums text-2xl font-semibold tracking-tight">
-          {c.heat.toFixed(2)}
-          <span className="ml-1 align-top text-[10px] font-normal uppercase tracking-wide opacity-70">heat</span>
-        </div>
-        {stalled && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-[#c0392b] px-2 py-0.5 text-[10px] font-semibold text-white shadow-sm">
-            <span className="size-1.5 animate-pulse rounded-full bg-white" />
-            STALLED
-          </span>
-        )}
-      </div>
-      <div className="relative mt-1 font-mono text-[11px] font-medium opacity-90">
-        {c.probe ? `probe: ${c.probe}` : "unprobed · static prediction"}
-      </div>
-    </button>
-  );
-}
-
 function num(v: Record<string, unknown>, k: string): number {
   const x = v[k];
   return typeof x === "number" ? x : 0;
 }
 
-function DetailModal({ cell, onClose }: { cell: HeatCell; onClose: () => void }) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+// ── Group VMs (local, derived from exported primitives) ────────────────────────
+const crossSurfaceCards: ProbeCardVM[] = orgProbes
+  .map((p) => ({
+    group: "cross-surface" as const,
+    probeId: p.probeId,
+    label: p.category,
+    task: p.task,
+    surfacesHit: p.surfacesHit,
+    score: p.score,
+    status: p.status,
+    rootCause: p.rootCause,
+    finding: p.finding,
+  }))
+  .sort((a, b) => b.score - a.score);
 
-  const finding = cell.probe ? afterFindingByProbe[cell.probe] : undefined;
-  const task = cell.probe ? taskTextOf(cell.probe) : "";
-  const metrics = [
-    { label: "lines of code", value: cell.loc },
-    { label: "cyclomatic", value: cell.cyclomatic },
-    { label: "coupling", value: cell.coupling },
-    { label: "DRY violations", value: cell.dry_violations },
-  ];
+// Keep a cross-surface probe out of the codebase group if it appears in both.
+const crossSurfaceProbeIds = new Set(crossSurfaceCards.map((c) => c.probeId));
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative z-10 w-full max-w-lg overflow-hidden rounded-2xl bg-card shadow-2xl ring-1 ring-border">
-        {/* header */}
-        <div className="flex items-start justify-between gap-4 border-b border-border p-5">
-          <div className="min-w-0">
-            <div className="font-mono text-[11px] text-muted-foreground">{dir(cell.path)}</div>
-            <div className="break-all font-mono text-base font-semibold">{base(cell.path)}</div>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            aria-label="Close"
-          >
-            <svg viewBox="0 0 16 16" width="16" height="16" fill="none">
-              <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-            </svg>
-          </button>
-        </div>
+const codebaseCards: ProbeCardVM[] = heatCells
+  .filter((c) => c.probe != null && !crossSurfaceProbeIds.has(c.probe))
+  .map((c): ProbeCardVM | null => {
+    const probeId = c.probe as string;
+    const finding = afterFindingByProbe[probeId];
+    if (!finding) return null; // probed cell missing a finding → skip defensively
+    return {
+      group: "codebase",
+      probeId,
+      label: probeLabel(probeId),
+      task: taskTextOf(probeId),
+      surfacesHit: ["repo"],
+      score: scoreOf(finding),
+      status: finding.status,
+      rootCause: finding.root_cause_tag,
+      finding,
+      metrics: {
+        loc: c.loc,
+        cyclomatic: c.cyclomatic,
+        coupling: c.coupling,
+        dry_violations: c.dry_violations,
+      },
+      path: c.path,
+    };
+  })
+  .filter((c): c is ProbeCardVM => c !== null)
+  .sort((a, b) => b.score - a.score);
 
-        {/* heat + static metrics */}
-        <div className="border-b border-border p-5">
-          <div className="mb-3 flex items-center gap-3">
-            <div
-              className="flex size-12 items-center justify-center rounded-lg font-mono text-lg font-bold tabular-nums"
-              style={{ background: heatFill(cell.heat), color: heatInk(cell.heat) }}
-            >
-              {cell.heat.toFixed(2)}
-            </div>
-            <div>
-              <div className="text-sm font-medium">Predicted friction</div>
-              <div className="text-xs text-muted-foreground">
-                cheap static pre-scan · never summed into the score
-              </div>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg bg-border sm:grid-cols-4">
-            {metrics.map((m) => (
-              <div key={m.label} className="bg-card px-3 py-2">
-                <div className="tabular-nums text-lg font-semibold">{m.value}</div>
-                <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{m.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* probe finding */}
-        <div className="p-5">
-          {!cell.probe || !finding ? (
-            <p className="text-sm text-muted-foreground">
-              No probe has exercised this module yet — the heat above is a static prediction only.
-              A probe would confirm or clear it.
-            </p>
-          ) : (
-            <>
-              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-sm font-semibold">{probeLabel(cell.probe)}</span>
-                  <StatusBadge status={finding.status} />
-                </div>
-                <div className="text-right">
-                  <span
-                    className="tabular-nums text-xl font-bold"
-                    style={{ color: frictionColor(scoreOf(finding)) }}
-                  >
-                    {scoreOf(finding).toFixed(1)}
-                  </span>
-                  <span className="ml-1 text-[10px] uppercase tracking-wide text-muted-foreground">friction</span>
-                </div>
-              </div>
-
-              {task && (
-                <div className="mb-3 rounded-lg border-l-2 border-border bg-muted/30 px-3 py-2">
-                  <div className="mb-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
-                    the task the candle ran
-                  </div>
-                  <p className="text-sm italic leading-relaxed text-foreground/90">&ldquo;{task}&rdquo;</p>
-                </div>
-              )}
-
-              <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                {(
-                  [
-                    ["tool calls", "tool_calls"],
-                    ["surfaces", "surfaces_opened"],
-                    ["dead ends", "dead_ends"],
-                    ["retries", "retries"],
-                    ["hedges", "hedging_count"],
-                  ] as const
-                ).map(([label, key]) => (
-                  <span key={key} className="tabular-nums">
-                    {label} <span className="font-semibold text-foreground">{num(finding.friction_vector as unknown as Record<string, unknown>, key)}</span>
-                  </span>
-                ))}
-              </div>
-
-              <div className="flex items-center gap-2 text-xs">
-                <span className="text-muted-foreground">root cause</span>
-                <TagBadge tag={finding.root_cause_tag} />
-              </div>
-
-              {finding.remediation && (
-                <div className="mt-4 rounded-lg bg-muted/40 p-3 ring-1 ring-border">
-                  <div className="mb-1.5 flex items-center gap-2">
-                    <RemediationBadge type={finding.remediation.type} />
-                    <span className="break-all font-mono text-[11px] text-muted-foreground">
-                      {finding.remediation.target}
-                    </span>
-                  </div>
-                  <p className="text-sm text-foreground/90">{finding.remediation.content}</p>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Legend() {
-  const stops = [0, 0.25, 0.5, 0.75, 1];
-  return (
-    <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-      <div className="flex items-center gap-2">
-        <span>predicted friction</span>
-        <div className="flex overflow-hidden rounded-md ring-1 ring-border">
-          {stops.map((s) => (
-            <span key={s} className="size-4" style={{ background: heatFill(s) }} />
-          ))}
-        </div>
-        <span>low → high</span>
-      </div>
-      <div className="flex items-center gap-1.5">
-        <span className="size-3 rounded-[3px] ring-2 ring-[#c0392b]" />
-        <span>probe confirmed a stall</span>
-      </div>
-      <span className="text-muted-foreground/70">· click any module for details</span>
-    </div>
-  );
-}
-
-function OrgProbeCard({ p, onOpen }: { p: OrgProbe; onOpen: () => void }) {
+// ── Uniform probe card ─────────────────────────────────────────────────────────
+function ProbeCard({ vm, onOpen }: { vm: ProbeCardVM; onOpen: () => void }) {
+  const stalled = vm.status === "stalled";
   return (
     <button
       type="button"
       onClick={onOpen}
-      className="group relative flex cursor-pointer flex-col gap-3 rounded-xl bg-card p-4 text-left ring-1 ring-border transition-transform duration-150 hover:-translate-y-0.5 hover:ring-foreground/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground"
+      className="group relative flex cursor-pointer flex-col gap-3 overflow-hidden rounded-xl bg-card p-4 pl-5 text-left ring-1 ring-border transition-transform duration-150 hover:-translate-y-0.5 hover:ring-foreground/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground"
     >
+      {/* blue friction gradient rail — driven by measured friction, not heat */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 left-0 w-1.5"
+        style={{ background: heatFill(vm.score / 100) }}
+      />
+      {stalled && (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 rounded-xl"
+          style={{ boxShadow: "inset 0 0 0 2px #c0392b" }}
+        />
+      )}
       {/* details affordance */}
       <span
         aria-hidden
@@ -260,20 +131,21 @@ function OrgProbeCard({ p, onOpen }: { p: OrgProbe; onOpen: () => void }) {
           <path d="M6 3.5L10.5 8 6 12.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </span>
+
       <div className="flex items-start justify-between gap-2 pr-5">
-        <span className="font-mono text-sm font-semibold">{p.category}</span>
-        <StatusBadge status={p.status} />
+        <span className="font-mono text-sm font-semibold">{vm.label}</span>
+        <StatusBadge status={vm.status} />
       </div>
 
-      {p.task && (
-        <p className="text-sm italic leading-relaxed text-foreground/90">&ldquo;{p.task}&rdquo;</p>
+      {vm.task && (
+        <p className="text-sm italic leading-relaxed text-foreground/90">&ldquo;{vm.task}&rdquo;</p>
       )}
 
-      {/* the cross-surface path the candle actually walked */}
-      {p.surfacesHit.length > 0 && (
+      {/* surfaces the probe actually reached — the codebase-vs-cross-surface tell */}
+      {vm.surfacesHit.length > 0 && (
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="text-[10px] uppercase tracking-wide text-muted-foreground">reached</span>
-          {p.surfacesHit.map((s, i) => (
+          {vm.surfacesHit.map((s, i) => (
             <span key={`${s}-${i}`} className="flex items-center gap-1.5">
               {i > 0 && <span className="text-muted-foreground/60">→</span>}
               <span className="rounded-md bg-muted px-1.5 py-0.5 font-mono text-[11px]">{s}</span>
@@ -285,16 +157,38 @@ function OrgProbeCard({ p, onOpen }: { p: OrgProbe; onOpen: () => void }) {
       <div className="mt-auto flex items-center justify-between border-t border-border pt-3">
         <div className="flex items-center gap-2 text-xs">
           <span className="text-muted-foreground">root cause</span>
-          <TagBadge tag={p.rootCause} />
+          <TagBadge tag={vm.rootCause} />
         </div>
         <div>
-          <span className="tabular-nums text-lg font-bold" style={{ color: frictionColor(p.score) }}>
-            {p.score.toFixed(1)}
+          <span className="tabular-nums text-lg font-bold" style={{ color: frictionColor(vm.score) }}>
+            {vm.score.toFixed(1)}
           </span>
           <span className="ml-1 text-[10px] uppercase tracking-wide text-muted-foreground">friction</span>
         </div>
       </div>
     </button>
+  );
+}
+
+function Legend() {
+  const stops = [0, 0.25, 0.5, 0.75, 1];
+  return (
+    <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+      <div className="flex items-center gap-2">
+        <span>friction</span>
+        <div className="flex overflow-hidden rounded-md ring-1 ring-border">
+          {stops.map((s) => (
+            <span key={s} className="size-4" style={{ background: heatFill(s) }} />
+          ))}
+        </div>
+        <span>low → high</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <span className="size-3 rounded-[3px] ring-2 ring-[#c0392b]" />
+        <span>probe stalled</span>
+      </div>
+      <span className="text-muted-foreground/70">· click any probe for the agent path</span>
+    </div>
   );
 }
 
@@ -384,14 +278,45 @@ function TracePanel({ probeId }: { probeId: string }) {
   );
 }
 
-function OrgProbeModal({ p, onClose }: { p: OrgProbe; onClose: () => void }) {
+// ── Friction-vector summary (shown when a probe has no captured trace) ──────────
+function FrictionVectorSummary({ finding }: { finding: Finding }) {
+  return (
+    <div className="space-y-2 rounded-lg bg-muted/30 p-4">
+      <div className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+        What the candle did
+      </div>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+        {(
+          [
+            ["tool calls", "tool_calls"],
+            ["surfaces", "surfaces_opened"],
+            ["dead ends", "dead_ends"],
+            ["retries", "retries"],
+            ["hedges", "hedging_count"],
+          ] as const
+        ).map(([label, key]) => (
+          <span key={key} className="tabular-nums">
+            {label}{" "}
+            <span className="font-semibold text-foreground">
+              {num(finding.friction_vector as unknown as Record<string, unknown>, key)}
+            </span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Unified modal (all cards) ──────────────────────────────────────────────────
+function ProbeModal({ vm, onClose }: { vm: ProbeCardVM; onClose: () => void }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  const remediation = p.finding.remediation;
+  const remediation = vm.finding.remediation;
+  const showTrace = hasTrace(vm.probeId);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
@@ -400,37 +325,52 @@ function OrgProbeModal({ p, onClose }: { p: OrgProbe; onClose: () => void }) {
         {/* header */}
         <div className="flex items-start justify-between gap-4 border-b border-border p-5">
           <div className="flex min-w-0 items-center gap-2">
-            <span className="font-mono text-base font-semibold">{p.category}</span>
-            <StatusBadge status={p.status} />
+            <span className="font-mono text-base font-semibold">{vm.label}</span>
+            <StatusBadge status={vm.status} />
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            aria-label="Close"
-          >
-            <svg viewBox="0 0 16 16" width="16" height="16" fill="none">
-              <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-            </svg>
-          </button>
+          <div className="flex items-center gap-3">
+            <div className="text-right">
+              <span
+                className="tabular-nums text-xl font-bold"
+                style={{ color: frictionColor(vm.score) }}
+              >
+                {vm.score.toFixed(1)}
+              </span>
+              <span className="ml-1 text-[10px] uppercase tracking-wide text-muted-foreground">friction</span>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              aria-label="Close"
+            >
+              <svg viewBox="0 0 16 16" width="16" height="16" fill="none">
+                <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         <div className="space-y-4 p-5">
-          {p.task && (
+          {vm.task && (
             <div className="rounded-lg border-l-2 border-border bg-muted/30 px-3 py-2">
               <div className="mb-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
                 the task the candle ran
               </div>
-              <p className="text-sm italic leading-relaxed text-foreground/90">&ldquo;{p.task}&rdquo;</p>
+              <p className="text-sm italic leading-relaxed text-foreground/90">&ldquo;{vm.task}&rdquo;</p>
             </div>
           )}
 
-          {/* the cross-surface trace */}
-          <TracePanel probeId={p.probeId} />
+          {/* agent path — captured trace when present, else the friction-vector summary */}
+          {showTrace ? (
+            <TracePanel probeId={vm.probeId} />
+          ) : (
+            <FrictionVectorSummary finding={vm.finding} />
+          )}
 
           <div className="flex items-center gap-2 text-xs">
             <span className="text-muted-foreground">root cause</span>
-            <TagBadge tag={p.rootCause} />
+            <TagBadge tag={vm.rootCause} />
           </div>
 
           {remediation && (
@@ -444,6 +384,33 @@ function OrgProbeModal({ p, onClose }: { p: OrgProbe; onClose: () => void }) {
               <p className="text-sm text-foreground/90">{remediation.content}</p>
             </div>
           )}
+
+          {/* codebase probes: neutral module metrics footnote */}
+          {vm.metrics && (
+            <div className="border-t border-border pt-4">
+              <div className="mb-2 flex items-center gap-2 text-[10px] uppercase tracking-wide text-muted-foreground">
+                <span>Module metrics</span>
+                {vm.path && (
+                  <span className="break-all font-mono normal-case tracking-normal text-muted-foreground/80">
+                    {vm.path}
+                  </span>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg bg-border sm:grid-cols-4">
+                {[
+                  { label: "lines of code", value: vm.metrics.loc },
+                  { label: "cyclomatic", value: vm.metrics.cyclomatic },
+                  { label: "coupling", value: vm.metrics.coupling },
+                  { label: "DRY violations", value: vm.metrics.dry_violations },
+                ].map((m) => (
+                  <div key={m.label} className="bg-card px-3 py-2">
+                    <div className="tabular-nums text-lg font-semibold">{m.value}</div>
+                    <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{m.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -451,67 +418,70 @@ function OrgProbeModal({ p, onClose }: { p: OrgProbe; onClose: () => void }) {
 }
 
 export function HeatmapView() {
-  const [selected, setSelected] = useState<HeatCell | null>(null);
-  const [selectedOrg, setSelectedOrg] = useState<OrgProbe | null>(null);
-  const cells = [...heatCells].sort((a, b) => b.heat - a.heat);
-  const confirmed = heatCells.filter((c) => c.probe_stalled).length;
+  const [selected, setSelected] = useState<ProbeCardVM | null>(null);
+  const stalls = [...crossSurfaceCards, ...codebaseCards].filter((c) => c.status === "stalled").length;
+  const total = crossSurfaceCards.length + codebaseCards.length;
 
   return (
     <div className="space-y-8">
-      {/* ── Codebase heatmap ─────────────────────────────────────────────── */}
+      {/* ── The probe battery — one board, two soft-split groups ─────────────── */}
       <div className="space-y-5">
         <div>
           <div className="flex items-baseline gap-3 border-b border-border pb-2.5">
             <span className="font-serif text-lg italic text-muted-foreground">Plate I</span>
-            <h2 className="text-2xl">Single Surface Probes</h2>
+            <h2 className="text-2xl">The Probe Battery</h2>
             <span className="ml-auto font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-              Codebase
+              {target}
             </span>
           </div>
           <p className="mt-2.5 max-w-2xl text-sm text-muted-foreground">
-            A cheap static pre-scan of{" "}
-            <span className="font-mono text-foreground">{target}</span> predicts where an
-            agent will struggle. The darker the cell, the higher the predicted friction —
-            and where a probe stalled, the
-            prediction is confirmed. Each card shows the task the probe ran.
+            Each card is a probe the engine ran against{" "}
+            <span className="font-mono text-foreground">{target}</span>. The measured friction
+            is the signal — the deeper the blue, the harder the agent worked. Click any probe to
+            replay the agent path it walked.
           </p>
         </div>
 
         <Legend />
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-3">
-          {cells.map((c) => (
-            <Cell key={c.path} c={c} onOpen={() => setSelected(c)} />
-          ))}
-        </div>
+
+        {/* Group 1 — Cross-surface (org level) */}
+        {crossSurfaceCards.length > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+              <span className="font-semibold">Cross-surface</span>
+              <span className="text-muted-foreground/70">· org level</span>
+              <span className="h-px flex-1 bg-border" />
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {crossSurfaceCards.map((vm) => (
+                <ProbeCard key={vm.probeId} vm={vm} onOpen={() => setSelected(vm)} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Group 2 — Codebase (repo scope) */}
+        {codebaseCards.length > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+              <span className="font-semibold">Codebase</span>
+              <span className="text-muted-foreground/70">· repo scope</span>
+              <span className="h-px flex-1 bg-border" />
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {codebaseCards.map((vm) => (
+                <ProbeCard key={vm.probeId} vm={vm} onOpen={() => setSelected(vm)} />
+              ))}
+            </div>
+          </div>
+        )}
+
         <p className="text-xs text-muted-foreground">
-          {confirmed} of {heatCells.length} modules were confirmed by a probe stall.
+          {stalls} of {total} probes stalled.
         </p>
       </div>
 
-      {/* ── Org-level probes (cross-surface, separate from the codebase map) ─ */}
-      {orgProbes.length > 0 && (
-        <div className="space-y-4 border-t border-border pt-6">
-          <div>
-            <div className="flex items-baseline gap-3 border-b border-border pb-2.5">
-              <span className="font-serif text-lg italic text-muted-foreground">Plate II</span>
-              <h3 className="text-2xl">Multi Surface Probes</h3>
-              <span className="ml-auto font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                Org level
-              </span>
-            </div>
-            <p className="mt-2.5 max-w-2xl text-sm text-muted-foreground">
-              These probes operate across the org&rsquo;s real surfaces (repo, email, notes). All probes below generated by the engine.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {orgProbes.map((p) => (
-              <OrgProbeCard key={p.probeId} p={p} onOpen={() => setSelectedOrg(p)} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ── Org surfaces (folded in beneath the codebase map) ────────────── */}
+      {/* ── Org surfaces (unchanged, stays at the very bottom) ────────────────── */}
       <div className="space-y-4 border-t border-border pt-6">
         <div>
           <h3 className="text-base font-semibold tracking-tight">Org surfaces</h3>
@@ -541,8 +511,7 @@ export function HeatmapView() {
         </div>
       </div>
 
-      {selected && <DetailModal cell={selected} onClose={() => setSelected(null)} />}
-      {selectedOrg && <OrgProbeModal p={selectedOrg} onClose={() => setSelectedOrg(null)} />}
+      {selected && <ProbeModal vm={selected} onClose={() => setSelected(null)} />}
     </div>
   );
 }
