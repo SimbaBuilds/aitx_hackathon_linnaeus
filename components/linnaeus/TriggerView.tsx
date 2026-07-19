@@ -52,9 +52,46 @@ function VerdictBadge({ relevant }: { relevant: boolean }) {
   );
 }
 
+// Operator-triggered runs persist in the browser (localStorage) so they survive a
+// refresh and accumulate across the demo — no database needed. Keyed + versioned.
+const MANUAL_RUNS_KEY = "linnaeus.manualRuns.v1";
+
+function loadManualRuns(): TriggerEvent[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(MANUAL_RUNS_KEY);
+    const parsed = raw ? (JSON.parse(raw) as TriggerEvent[]) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+function saveManualRuns(events: TriggerEvent[]): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(MANUAL_RUNS_KEY, JSON.stringify(events));
+  } catch {
+    /* quota / privacy mode — non-fatal, runs just won't persist */
+  }
+}
+
 export function TriggerView() {
-  // Runs fired from the Run Now panel prepend to the feed for the session.
+  // Operator runs persist across refresh via localStorage. Start empty (matches the
+  // server render), then hydrate on mount to avoid an SSR/hydration mismatch.
   const [manualEvents, setManualEvents] = useState<TriggerEvent[]>([]);
+  useEffect(() => setManualEvents(loadManualRuns()), []);
+
+  const addManualEvent = (e: TriggerEvent) =>
+    setManualEvents((prev) => {
+      const next = [e, ...prev];
+      saveManualRuns(next);
+      return next;
+    });
+  const clearManualEvents = () => {
+    setManualEvents([]);
+    saveManualRuns([]);
+  };
+
   const events = [...manualEvents, ...triggerEvents];
   const fired = events.filter((e) => e.dispatched).length;
 
@@ -78,7 +115,7 @@ export function TriggerView() {
       </div>
 
       {/* ── operator-triggered battery ── */}
-      <RunNowPanel onComplete={(e) => setManualEvents((prev) => [e, ...prev])} />
+      <RunNowPanel onComplete={addManualEvent} />
 
       {/* ── the heartbeat feed ── */}
       <ol className="relative space-y-3 border-l border-border pl-6">
@@ -87,10 +124,25 @@ export function TriggerView() {
         ))}
       </ol>
 
-      <p className="text-xs text-muted-foreground">
-        {events.length} event{events.length === 1 ? "" : "s"} observed ·{" "}
-        {fired} dispatched a re-audit · the rest correctly ignored as noise.
-      </p>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+        <span>
+          {events.length} event{events.length === 1 ? "" : "s"} observed ·{" "}
+          {fired} dispatched a re-audit · the rest correctly ignored as noise.
+        </span>
+        {manualEvents.length > 0 && (
+          <>
+            <span className="text-muted-foreground/60">
+              · {manualEvents.length} operator run{manualEvents.length === 1 ? "" : "s"} saved (persist across refresh)
+            </span>
+            <button
+              onClick={clearManualEvents}
+              className="underline-offset-2 hover:text-foreground hover:underline"
+            >
+              clear saved runs
+            </button>
+          </>
+        )}
+      </div>
     </div>
   );
 }
