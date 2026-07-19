@@ -15,6 +15,7 @@ import type {
   Run,
   Surface,
   RootCauseTag,
+  Remediation,
 } from "@/lib/contracts";
 import { frictionScore } from "@/lib/instrumentation";
 
@@ -72,13 +73,52 @@ interface SynthBoardShape {
 }
 const synthBoard = synthBoardJson as unknown as SynthBoardShape;
 
+// Typed recommendation per org-level STALL (beat 3: every finding → a typed
+// recommendation the human decides on). Grounded + anonymized; the TYPE follows
+// mechanically from the root cause. Completed-clean probes get none by design
+// (a stall-free surface has nothing to remediate). Attached in the data layer so
+// it survives board re-runs (the engine emits remediation: null).
+const ORG_REMEDIATION: Record<string, Remediation> = {
+  "synth-ownership-map": {
+    type: "Document",
+    content:
+      "Add a committed ownership record (OWNERS / governance doc) naming the clinical " +
+      "sign-off authority for protocol & contraindication changes — today it exists only " +
+      "in email and ad-hoc request files, so an agent can't determine who approves.",
+    target: "docs/OWNERS.md",
+    provenance: "candle-inferred (no-owner: no committed ownership record found)",
+  },
+  "synth-billing-rollout": {
+    type: "Document",
+    content:
+      "Record the fleet-wide weekly-billing rollout as an owned, tracked plan with a named " +
+      "owner and ticket — today only an email thread references pilot clinics, so there is " +
+      "no discoverable owner or status.",
+    target: "implementation_plans/weekly_billing_rollout.md",
+    provenance: "candle-inferred (no-owner: no tracked/owned rollout)",
+  },
+  // NB: keyed on the RAW probe_id (findings carry the un-anonymized id; the UI
+  // rewrites nxtyou→d2c_web only at display time).
+  "synth-nxtyou-wiring": {
+    type: "Fix",
+    content:
+      "Wire the d2c provider flag to a reachable admin toggle / API endpoint and branch the " +
+      "patient-queue on it — the schema column and query filter exist but nothing sets it, " +
+      "so the feature is half-built and unreachable. (Or Delete the dead path if abandoned.)",
+    target: "d2c_web/provider-access (is_d2c_web flag)",
+    provenance: "candle-inferred (dead-code: flag exists, no setter/branch)",
+  },
+};
+
 const synthFindings: Finding[] = synthBoard.findings.map((f) => ({
   run_id: "run_after", // fold into the current-state audit surface
   probe_id: f.probe_id,
   status: f.status,
   friction_vector: f.friction_vector,
   root_cause_tag: f.root_cause_tag,
-  remediation: f.remediation ?? null,
+  // Real remediation if the board carried one; else the grounded typed
+  // recommendation for this stall; completed-clean stays null.
+  remediation: f.remediation ?? ORG_REMEDIATION[f.probe_id] ?? null,
 }));
 
 const synthProbes: Probe[] = synthBoard.findings.map((f) => {
