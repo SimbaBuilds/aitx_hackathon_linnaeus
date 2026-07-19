@@ -329,9 +329,18 @@ export interface ProbeDelta {
 // The event-driven beat (L28, Red Hat Live Data): the always-on classifier watches
 // event surfaces and dispatches a re-audit when an operability-relevant change
 // lands. Every string is anonymized at render (live identifiers in the raw log).
+// One probe's result inside an operator "Run now" battery.
+export interface OperatorRunProbe {
+  id: string;
+  label: string; // anonymized
+  status: string; // completed | stalled | failed_to_author
+  score: number;
+  rootCause: string;
+}
+
 export interface TriggerEvent {
   ts: string;
-  source: string; // gmail | cron | …
+  source: string; // gmail | cron | operator | …
   subject: string; // anonymized
   from: string; // anonymized
   classifierModel: string;
@@ -341,6 +350,15 @@ export interface TriggerEvent {
   dispatchKind: string | null; // re-audit | drift-sweep
   delta: number | null; // friction delta caught, when a re-audit ran
   deltaProbe: string | null;
+  // Operator "Run now" only — the real per-probe results captured from the
+  // battery (source of truth for the card's detail view). Absent on classifier
+  // events, which show the operability-relevant/not-relevant verdict instead.
+  operatorRun?: {
+    mode: string; // sequential | concurrent
+    wall: number; // ms wall-clock
+    model: string; // candle model that measured it
+    probes: OperatorRunProbe[];
+  } | null;
 }
 
 interface TriggerRow {

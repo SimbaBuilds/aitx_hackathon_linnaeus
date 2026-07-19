@@ -6,6 +6,7 @@ import {
   runnableProbes,
   type TriggerEvent,
   type RunnableProbe,
+  type OperatorRunProbe,
 } from "@/components/linnaeus/data";
 import { FRICTION_BAD, FRICTION_GOOD, frictionColor, chip } from "@/components/linnaeus/colors";
 
@@ -248,19 +249,33 @@ function RunNowPanel({ onComplete }: { onComplete: (e: TriggerEvent) => void }) 
       ticker.current = null;
 
       const wall = (typeof data.wall_s === "number" ? data.wall_s : (performance.now() - start) / 1000) * 1000;
+      type ApiFinding = { probe_id: string; status: string; score: number; root_cause_tag: string };
+      const apiFindings = (data.findings ?? []) as ApiFinding[];
+      const byId = new Map(apiFindings.map((f) => [f.probe_id, f]));
       const scores: Record<string, number> = {};
       const done: Record<string, RunStatus> = {};
-      for (const f of (data.findings ?? []) as Array<{ probe_id: string; score: number }>) {
+      for (const f of apiFindings) {
         scores[f.probe_id] = f.score;
         done[f.probe_id] = "done";
       }
       selectedList.forEach((p) => { if (!(p.id in done)) done[p.id] = "done"; });
+      // Real per-probe results, in the operator's selected order — the card detail.
+      const probeResults: OperatorRunProbe[] = selectedList.map((p) => {
+        const f = byId.get(p.id);
+        return {
+          id: p.id,
+          label: p.label,
+          status: f?.status ?? "stalled",
+          score: typeof f?.score === "number" ? f.score : (scores[p.id] ?? 0),
+          rootCause: f?.root_cause_tag ?? "none",
+        };
+      });
       setStatus(done);
       setRevealed(scores);
       setElapsed(wall);
       setResult({ wall, seqWall: 0, mode, count: selectedList.length });
       setPhase("done");
-      onComplete(makeManualEvent(mode, selectedList.length, wall));
+      onComplete(makeManualEvent(mode, wall, probeResults, data.model ?? "nemotron"));
     } catch (e) {
       if (ticker.current) clearInterval(ticker.current);
       ticker.current = null;
@@ -519,23 +534,79 @@ function ProbeGroup({
   );
 }
 
-function makeManualEvent(mode: Mode, count: number, wall: number): TriggerEvent {
+function makeManualEvent(
+  mode: Mode,
+  wall: number,
+  probes: OperatorRunProbe[],
+  model: string,
+): TriggerEvent {
+  const count = probes.length;
+  // Name the probe(s) so the card says WHAT ran, not just how many.
+  const subject =
+    count === 1
+      ? `Manual run — ${probes[0].label}`
+      : count <= 3
+        ? `Manual run — ${probes.map((p) => p.label).join(", ")}`
+        : `Manual run — ${count} probes`;
+  const stalled = probes.filter((p) => p.status !== "completed").length;
   return {
     ts: new Date().toISOString(),
     source: "operator",
-    subject: `Manual run — ${count} probe${count === 1 ? "" : "s"} (${mode})`,
+    subject,
     from: "operator",
-    classifierModel: "operator",
-    relevant: true,
+    classifierModel: model,
+    relevant: true, // unused for operator cards (no classifier verdict shown)
     reason:
-      mode === "concurrent"
-        ? `Operator-triggered battery · batched (--max-num-seqs 8) · ${(wall / 1000).toFixed(1)}s wall-clock`
-        : `Operator-triggered battery · sequential · ${(wall / 1000).toFixed(1)}s wall-clock`,
+      `${count} probe${count === 1 ? "" : "s"} · ${mode}` +
+      (mode === "concurrent" ? " (--max-num-seqs 8)" : "") +
+      ` · ${(wall / 1000).toFixed(1)}s wall-clock · ${stalled} stalled`,
     dispatched: true,
     dispatchKind: mode === "concurrent" ? "batched-run" : "sequential-run",
     delta: null,
     deltaProbe: null,
+    operatorRun: { mode, wall, model, probes },
   };
+}
+
+function statusColor(status: string): string {
+  return status === "completed" ? FRICTION_GOOD : FRICTION_BAD;
+}
+
+// The log detail for an operator "Run now": which probes ran, and each one's
+// real status + friction score + root cause, straight from the battery response.
+function OperatorRunDetail({ run }: { run: NonNullable<TriggerEvent["operatorRun"]> }) {
+  const stalled = run.probes.filter((p) => p.status !== "completed").length;
+  return (
+    <div className="space-y-2.5">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+        <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground/70">
+          {run.model} ·
+        </span>
+        <span>
+          {run.probes.length} probe{run.probes.length === 1 ? "" : "s"} · {run.mode}
+          {run.mode === "concurrent" ? " (--max-num-seqs 8)" : ""} · {(run.wall / 1000).toFixed(1)}s
+          wall-clock · {stalled} stalled
+        </span>
+      </div>
+      <ul className="divide-y divide-border/60 overflow-hidden rounded-lg bg-muted/30">
+        {run.probes.map((p) => (
+          <li key={p.id} className="flex items-center gap-2.5 px-3 py-1.5">
+            <span className="size-1.5 shrink-0 rounded-full" style={{ background: statusColor(p.status) }} aria-hidden />
+            <span className="min-w-0 flex-1 truncate text-sm text-foreground">{p.label}</span>
+            {p.rootCause !== "none" && (
+              <span className="font-mono text-[10px] text-muted-foreground">{p.rootCause}</span>
+            )}
+            <span className="font-mono text-[10px] uppercase tracking-wide" style={{ color: statusColor(p.status) }}>
+              {p.status}
+            </span>
+            <span className="w-10 text-right font-mono text-xs tabular-nums" style={{ color: frictionColor(p.score) }}>
+              {p.score.toFixed(1)}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
 function TriggerRow({ e }: { e: TriggerEvent }) {
@@ -566,16 +637,21 @@ function TriggerRow({ e }: { e: TriggerEvent }) {
         </div>
 
         <div className="space-y-3 px-5 py-4">
-          {/* classifier decision */}
-          <div className="flex flex-wrap items-start gap-x-3 gap-y-1.5">
-            <VerdictBadge relevant={e.relevant} />
-            <span className="min-w-0 flex-1 text-xs leading-relaxed text-muted-foreground">
-              <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground/70">
-                {e.classifierModel} ·{" "}
+          {e.operatorRun ? (
+            /* operator run: real per-probe results, no classifier verdict */
+            <OperatorRunDetail run={e.operatorRun} />
+          ) : (
+            /* classifier decision */
+            <div className="flex flex-wrap items-start gap-x-3 gap-y-1.5">
+              <VerdictBadge relevant={e.relevant} />
+              <span className="min-w-0 flex-1 text-xs leading-relaxed text-muted-foreground">
+                <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground/70">
+                  {e.classifierModel} ·{" "}
+                </span>
+                {e.reason}
               </span>
-              {e.reason}
-            </span>
-          </div>
+            </div>
+          )}
 
           {/* dispatch outcome */}
           <div className="flex items-center gap-2 border-t border-dashed border-border pt-3 text-sm">
