@@ -329,6 +329,15 @@ export interface ProbeDelta {
 // The event-driven beat (L28, Red Hat Live Data): the always-on classifier watches
 // event surfaces and dispatches a re-audit when an operability-relevant change
 // lands. Every string is anonymized at render (live identifiers in the raw log).
+// A single tool call the candle made during a live operator run.
+export interface OperatorTraceStep {
+  surface: string;
+  tool: string;
+  ok: boolean;
+  query: string; // anonymized at render
+  note: string; // anonymized at render
+}
+
 // One probe's result inside an operator "Run now" battery.
 export interface OperatorRunProbe {
   id: string;
@@ -336,6 +345,8 @@ export interface OperatorRunProbe {
   status: string; // completed | stalled | failed_to_author
   score: number;
   rootCause: string;
+  trace?: OperatorTraceStep[]; // the tool-by-tool path (from /api/run-battery)
+  verdict?: string; // the candle's final structured line, if any
 }
 
 export interface TriggerEvent {

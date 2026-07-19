@@ -8,7 +8,10 @@
 // once (Promise.all) so vLLM's continuous batching does real work.
 //
 // Body: { probeIds: string[], mode: "sequential" | "concurrent" }
-// Returns: { ok, mode, count, wall_s, isProd, model, findings: [{probe_id,status,score,root_cause_tag}] }
+// Returns: { ok, mode, count, wall_s, isProd, model,
+//            findings: [{probe_id,status,score,root_cause_tag,trace,verdict}] }
+// `trace` = the tool-by-tool path the candle walked (surface/tool/query/ok/note),
+// `verdict` = its final structured line — so the UI can show what the agent did.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { NextResponse } from "next/server";
@@ -18,6 +21,43 @@ import { runProbe } from "@/engine";
 import { BATTERY_IDS } from "@/probes";
 import { frictionScore } from "@/lib/instrumentation";
 import type { Finding } from "@/lib/contracts";
+import type { SurfaceTool } from "@/lib/surfaces";
+import type { ChatMessage } from "@/lib/candle";
+
+interface TraceEntry {
+  surface: string;
+  tool: string;
+  ok: boolean;
+  query: string;
+  note: string;
+}
+
+function argSummary(args: Record<string, unknown>): string {
+  const q = args.query ?? args.q ?? args.path ?? args.page_id;
+  return q === undefined ? "" : String(q).slice(0, 80);
+}
+
+function extractVerdict(messages: ChatMessage[]): string {
+  const text = messages
+    .filter((m) => m.role === "assistant")
+    .map((m) => m.content ?? "")
+    .join("\n");
+  return text.match(/(OWNER|ROLLOUT|WIRING|COVERAGE):.*/i)?.[0]?.trim() ?? "";
+}
+
+// Wrap each tool so every real invocation is logged into `trace`. Wrapping here
+// (before runProbe re-wraps with the FrictionRecorder) captures the actual path.
+// Fresh per probe, so concurrent runs never cross-contaminate their traces.
+function tracingTools(tools: SurfaceTool[], trace: TraceEntry[]): SurfaceTool[] {
+  return tools.map((t) => ({
+    ...t,
+    invoke: async (args: Record<string, unknown>) => {
+      const r = await t.invoke(args);
+      trace.push({ surface: t.surface, tool: t.name, ok: r.ok, query: argSummary(args), note: r.note ?? "" });
+      return r;
+    },
+  }));
+}
 
 export const runtime = "nodejs"; // engine + surfaces need fs / node APIs (not edge)
 export const dynamic = "force-dynamic"; // never cache a run
@@ -50,52 +90,69 @@ export async function POST(req: Request) {
 
   // Per-probe isolation: one probe throwing (e.g. an unauthorized org surface)
   // must not sink the whole battery — return a stalled finding for it instead.
-  const one = async (id: string): Promise<Finding> => {
+  // Each probe captures its own trace + verdict (fresh tracing tools per call).
+  interface ProbeRun {
+    finding: Finding;
+    trace: TraceEntry[];
+    verdict: string;
+  }
+  const one = async (id: string): Promise<ProbeRun> => {
+    const trace: TraceEntry[] = [];
+    let verdict = "";
     try {
-      return await runProbe(id, target, tools, candle);
-    } catch (e) {
+      const finding = await runProbe(id, target, tracingTools(tools, trace), candle, {
+        onFinish: (messages) => (verdict = extractVerdict(messages)),
+      });
+      return { finding, trace, verdict };
+    } catch {
       return {
-        run_id: `run_error_${id}`,
-        probe_id: id,
-        status: "stalled",
-        friction_vector: {
-          completed: false,
-          seconds_to_first_correct_move: 0,
-          surfaces_opened: 0,
-          tool_calls: 0,
-          retries: 0,
-          dead_ends: 1,
-          guessed: false,
-          hedging_count: 0,
-        },
-        root_cause_tag: "missing-doc",
-        remediation: null,
-      } satisfies Finding;
+        finding: {
+          run_id: `run_error_${id}`,
+          probe_id: id,
+          status: "stalled",
+          friction_vector: {
+            completed: false,
+            seconds_to_first_correct_move: 0,
+            surfaces_opened: 0,
+            tool_calls: 0,
+            retries: 0,
+            dead_ends: 1,
+            guessed: false,
+            hedging_count: 0,
+          },
+          root_cause_tag: "missing-doc",
+          remediation: null,
+        } satisfies Finding,
+        trace,
+        verdict,
+      };
     }
   };
 
   const started = Date.now();
-  let findings: Finding[];
+  let runs: ProbeRun[];
   if (mode === "concurrent") {
-    findings = await Promise.all(probeIds.map(one)); // all in flight → vLLM batches
+    runs = await Promise.all(probeIds.map(one)); // all in flight → vLLM batches
   } else {
-    findings = [];
-    for (const id of probeIds) findings.push(await one(id));
+    runs = [];
+    for (const id of probeIds) runs.push(await one(id));
   }
   const wall_s = (Date.now() - started) / 1000;
 
   return NextResponse.json({
     ok: true,
     mode,
-    count: findings.length,
+    count: runs.length,
     wall_s,
     isProd: candle.isProd,
     model: candle.spec.model,
-    findings: findings.map((f) => ({
-      probe_id: f.probe_id,
-      status: f.status,
-      score: frictionScore(f.friction_vector),
-      root_cause_tag: f.root_cause_tag,
+    findings: runs.map((r) => ({
+      probe_id: r.finding.probe_id,
+      status: r.finding.status,
+      score: frictionScore(r.finding.friction_vector),
+      root_cause_tag: r.finding.root_cause_tag,
+      trace: r.trace,
+      verdict: r.verdict,
     })),
   });
 }

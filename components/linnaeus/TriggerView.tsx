@@ -9,6 +9,7 @@ import {
   type OperatorRunProbe,
 } from "@/components/linnaeus/data";
 import { FRICTION_BAD, FRICTION_GOOD, frictionColor, chip } from "@/components/linnaeus/colors";
+import { anonymize } from "@/components/linnaeus/anonymize";
 
 // A compact Central-Time date+time label from an ISO timestamp — the "field
 // observation" time. Explicitly rendered in America/Chicago (never the runtime's
@@ -249,7 +250,15 @@ function RunNowPanel({ onComplete }: { onComplete: (e: TriggerEvent) => void }) 
       ticker.current = null;
 
       const wall = (typeof data.wall_s === "number" ? data.wall_s : (performance.now() - start) / 1000) * 1000;
-      type ApiFinding = { probe_id: string; status: string; score: number; root_cause_tag: string };
+      type ApiTraceStep = { surface: string; tool: string; ok: boolean; query?: string; note?: string };
+      type ApiFinding = {
+        probe_id: string;
+        status: string;
+        score: number;
+        root_cause_tag: string;
+        trace?: ApiTraceStep[];
+        verdict?: string;
+      };
       const apiFindings = (data.findings ?? []) as ApiFinding[];
       const byId = new Map(apiFindings.map((f) => [f.probe_id, f]));
       const scores: Record<string, number> = {};
@@ -268,6 +277,14 @@ function RunNowPanel({ onComplete }: { onComplete: (e: TriggerEvent) => void }) 
           status: f?.status ?? "stalled",
           score: typeof f?.score === "number" ? f.score : (scores[p.id] ?? 0),
           rootCause: f?.root_cause_tag ?? "none",
+          trace: (f?.trace ?? []).map((s) => ({
+            surface: s.surface,
+            tool: s.tool,
+            ok: s.ok,
+            query: s.query ?? "",
+            note: s.note ?? "",
+          })),
+          verdict: f?.verdict ?? "",
         };
       });
       setStatus(done);
@@ -572,12 +589,96 @@ function statusColor(status: string): string {
   return status === "completed" ? FRICTION_GOOD : FRICTION_BAD;
 }
 
+const TRACE_SURFACE_COLOR: Record<string, string> = {
+  repo: "#6b7280",
+  gmail: "#c0392b",
+  drive: "#2f6fed",
+  notion: "#111827",
+  rds: "#0ca30c",
+};
+function TraceSurfacePill({ surface }: { surface: string }) {
+  const c = TRACE_SURFACE_COLOR[surface] ?? "#6b7280";
+  return (
+    <span
+      className="inline-flex min-w-[48px] justify-center rounded px-1.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wide"
+      style={{ background: `${c}1a`, color: c }}
+    >
+      {surface}
+    </span>
+  );
+}
+
+// The expanded trace for one probe of an operator run: the tool-by-tool path the
+// candle actually walked (from /api/run-battery), anonymized for display.
+function ProbeTracePanel({ p }: { p: OperatorRunProbe }) {
+  const steps = p.trace ?? [];
+  const reachIdx = steps.findIndex((s) => s.ok && s.surface !== "repo");
+  const verdict = anonymize(p.verdict ?? "");
+  const conclusion =
+    verdict ||
+    `${p.status === "completed" ? "Completed" : "Stalled"} after ${steps.length} tool call${steps.length === 1 ? "" : "s"}` +
+      (p.rootCause !== "none" ? ` → ${p.rootCause}` : "") + ".";
+  return (
+    <div className="mt-1 space-y-2 rounded-lg bg-muted/40 p-3">
+      <div className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+        What the candle did — {steps.length} tool call{steps.length === 1 ? "" : "s"}
+      </div>
+      {steps.length === 0 ? (
+        <div className="font-mono text-[11px] text-muted-foreground">
+          (no tool calls recorded — the candle answered without exploring)
+        </div>
+      ) : (
+        <ol className="divide-y divide-border/50">
+          {steps.map((s, i) => (
+            <li key={i} className="flex items-start gap-2 py-1">
+              <TraceSurfacePill surface={s.surface} />
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                  <span className="font-mono text-[11px] text-foreground">{s.tool}</span>
+                  {s.query && (
+                    <span className="font-mono text-[11px] text-muted-foreground">· {anonymize(s.query)}</span>
+                  )}
+                  <span className="font-mono text-[10px]" style={{ color: s.ok ? "#0ca30c" : "#b06a00" }}>
+                    {s.ok ? "ok" : "no result"}
+                  </span>
+                  {i === reachIdx && (
+                    <span className="rounded bg-[#c0392b]/10 px-1.5 py-0.5 text-[10px] font-semibold text-[#c0392b]">
+                      ← reached {s.surface}
+                    </span>
+                  )}
+                </div>
+                {s.note && (
+                  <div className="truncate font-mono text-[10px] text-muted-foreground">{anonymize(s.note)}</div>
+                )}
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
+      <div className="flex items-start gap-2 rounded-md border border-[#c0392b]/30 bg-[#c0392b]/[0.04] px-3 py-2">
+        <span className="mt-0.5 shrink-0 text-[10px] font-semibold uppercase tracking-wide text-[#c0392b]">
+          {verdict ? "verdict" : "outcome"}
+        </span>
+        <span className="font-mono text-[11px] text-foreground">{conclusion}</span>
+      </div>
+    </div>
+  );
+}
+
 // The log detail for an operator "Run now": which probes ran, and each one's
-// real status + friction score + root cause, straight from the battery response.
+// real status + friction score + root cause. Each row EXPANDS into the trace —
+// the tool-by-tool path the candle walked (same idea as the Findings tab).
 // Legacy events (saved before probe-detail existed) have no `operatorRun` — they
 // still render cleanly: the summary line from `reason`, just no per-probe list.
 function OperatorRunDetail({ e }: { e: TriggerEvent }) {
   const run = e.operatorRun;
+  const [open, setOpen] = useState<Set<string>>(new Set());
+  const toggle = (id: string) =>
+    setOpen((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
   return (
     <div className="space-y-2.5">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
@@ -587,23 +688,47 @@ function OperatorRunDetail({ e }: { e: TriggerEvent }) {
         <span>{e.reason}</span>
       </div>
       {run && run.probes.length > 0 && (
-      <ul className="divide-y divide-border/60 overflow-hidden rounded-lg bg-muted/30">
-        {run.probes.map((p) => (
-          <li key={p.id} className="flex items-center gap-2.5 px-3 py-1.5">
-            <span className="size-1.5 shrink-0 rounded-full" style={{ background: statusColor(p.status) }} aria-hidden />
-            <span className="min-w-0 flex-1 truncate text-sm text-foreground">{p.label}</span>
-            {p.rootCause !== "none" && (
-              <span className="font-mono text-[10px] text-muted-foreground">{p.rootCause}</span>
-            )}
-            <span className="font-mono text-[10px] uppercase tracking-wide" style={{ color: statusColor(p.status) }}>
-              {p.status}
-            </span>
-            <span className="w-10 text-right font-mono text-xs tabular-nums" style={{ color: frictionColor(p.score) }}>
-              {p.score.toFixed(1)}
-            </span>
-          </li>
-        ))}
-      </ul>
+        <ul className="divide-y divide-border/60 overflow-hidden rounded-lg bg-muted/30">
+          {run.probes.map((p) => {
+            const expandable = (p.trace?.length ?? 0) > 0 || !!p.verdict;
+            const isOpen = open.has(p.id);
+            return (
+              <li key={p.id} className="px-3 py-1.5">
+                <button
+                  type="button"
+                  disabled={!expandable}
+                  onClick={() => expandable && toggle(p.id)}
+                  className={`flex w-full items-center gap-2.5 text-left ${expandable ? "cursor-pointer" : "cursor-default"}`}
+                  aria-expanded={isOpen}
+                >
+                  {expandable ? (
+                    <span className="shrink-0 text-muted-foreground" style={{ transform: isOpen ? "rotate(90deg)" : "none" }}>
+                      <svg viewBox="0 0 16 16" width="10" height="10" fill="none" aria-hidden>
+                        <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </span>
+                  ) : (
+                    <span className="size-1.5 shrink-0 rounded-full" style={{ background: statusColor(p.status) }} aria-hidden />
+                  )}
+                  <span className="min-w-0 flex-1 truncate text-sm text-foreground">{p.label}</span>
+                  {p.trace && p.trace.length > 0 && (
+                    <span className="font-mono text-[10px] text-muted-foreground">{p.trace.length} calls</span>
+                  )}
+                  {p.rootCause !== "none" && (
+                    <span className="font-mono text-[10px] text-muted-foreground">{p.rootCause}</span>
+                  )}
+                  <span className="font-mono text-[10px] uppercase tracking-wide" style={{ color: statusColor(p.status) }}>
+                    {p.status}
+                  </span>
+                  <span className="w-10 text-right font-mono text-xs tabular-nums" style={{ color: frictionColor(p.score) }}>
+                    {p.score.toFixed(1)}
+                  </span>
+                </button>
+                {expandable && isOpen && <ProbeTracePanel p={p} />}
+              </li>
+            );
+          })}
+        </ul>
       )}
     </div>
   );
