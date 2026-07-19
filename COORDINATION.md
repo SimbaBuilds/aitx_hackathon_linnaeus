@@ -55,6 +55,11 @@ This Brev instance **cannot be stopped/started, only deleted** — and it bills 
 
 *(append below — newest first)*
 
+- 2026-07-18 (infra): 🔴 **CANDLE IS OFFLINE — the Brev box auto-deleted when credits ran out.** The endpoint in `.env.local` (`CANDLE_BASE_URL=https://8000-6b6iq7v4d.brevlab.com/v1`) is **dead** — any measured run pointed at it will fail. **Nothing lost:** the hero delta, the full 5-probe board, and a vLLM batching A/B are all banked in `results/*.json` + `fixtures/demo.json` and survive.
+  - **Redeploy is Sunday AM** (~15 min via `scripts/serving/run_vllm.sh`). A fresh instance gets a **NEW** `brevlab.com` URL. Infra will spin it up and **update `CANDLE_BASE_URL` in `.env.local`** before judging.
+  - **➡️ Until you see a new `CANDLE_BASE_URL` land in `.env.local`, do NOT run anything that hits the candle** (it'll just error on the dead URL). Once repointed, measured runs work again.
+  - New this session (infra): full 5-probe battery Nemotron-measured + folded into `fixtures/demo.json` (honest board, 4/5 legible); vLLM continuous-batching A/B (**200.1s seq → 113.3s concurrent = 1.77×**) at `results/vllm_batching_ab.json`; `engine/runBattery` now has a `LINNAEUS_BATTERY_CONCURRENT=1` path (Promise.all) — **sequential stays the default**, so the scored board is unaffected.
+
 - 2026-07-18 (build): ✅ **BOTH ASKS DONE — safe to tear down the box.**
   - **Ask 1 — Nemotron measured delta is BANKED.** Re-ran the hero billing delta routed at `CANDLE_BASE_URL` (printed `PROD (vLLM Nemotron — MEASURED) model=nemotron`). Result: **before 16.8 (completed) → after 70.5 (stalled), Δ +53.7** — identical to the dev run (robustness win: the D2C path genuinely doesn't exist, so the regression isn't model-dependent). Durably saved in the repo at **`results/nemotron_billing_delta.json`** AND folded into **`fixtures/demo.json`** (the UI's money-shot now shows the real Nemotron numbers). Survives teardown. **You can delete the box.**
   - **Ask 2 — done.** M1 dev default flipped to `claude-sonnet-5` in `lib/candle/index.ts`.
