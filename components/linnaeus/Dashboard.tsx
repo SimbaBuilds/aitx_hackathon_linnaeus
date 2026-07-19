@@ -66,7 +66,7 @@ export function Dashboard() {
           <div>
             <h1 className="text-4xl leading-none">Linnaeus</h1>
             <p className="mt-1.5 font-serif text-sm italic text-muted-foreground">
-              A cyanotype field guide to agent operability
+              A field guide to agent operability
             </p>
           </div>
         </div>

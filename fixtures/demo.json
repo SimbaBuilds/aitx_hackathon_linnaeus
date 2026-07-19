@@ -1,5 +1,6 @@
 {
   "_note": "Fixture sample conforming to Contract A (lib/contracts.ts). WS-C builds the 3 views against this; WS-D round-trips it through Supabase. friction scores in _derived are frictionScore(friction_vector) from lib/instrumentation.ts — recompute, do not hardcode in UI.",
+  "org": "Telehealth Group",
   "target": "Telehealth Monorepo",
   "surfaces": [
     {
