@@ -140,7 +140,8 @@ Full component detail, quickstart commands, VRAM tiers, starter `policy.yaml`, a
 - [ ] **Calibration cameo** — codebase pre-scan heatmap lighting up where a probe stalls (~20s)
 - [ ] *(stretch)* NemoClaw install routed to the candle
 - [ ] *(stretch)* OpenShell sandbox + adversarial-surviving `policy.yaml`
-- [ ] **One real trigger (L28):** Gmail deploy-announcement → re-audit (Juniper pattern); narrate the taxonomy (event-class incl. offboarding + cron-drift) around it. **L12 stays supreme: if the live trigger isn't wired by the 11am freeze, narrate it too — never spend delta-protecting time on the webhook.**
+- [x] **One real trigger (L28):** ✅ **BUILT** — `scripts/watch-trigger.ts`: polls Gmail (real surface + auto-refresh) → cheap always-on classifier (Haiku, GPU-independent triage) → on an operability-relevant change, dispatches a re-audit (live on Nemotron if up, else replays banked Δ+53.7). `--sample` fires on the deploy email; real poll shown discriminating (says NO to noise). Narrate the taxonomy (offboarding + cron-drift) around it.
+- [x] **Report→PR probe (the "Henry" probe):** ✅ **BUILT** (read-only) — `report-to-pr` in `probes/registry.ts` + `probe_report_to_pr.md`; backed by real prod evidence `henry_quo_e2e.PNG`. Measures the dev maintenance loop; not in `BATTERY_IDS`. Measure on Nemotron in the AM.
 - [ ] **Submission** — per the hackathon Submission Checklist (find + fill), Discord, "Submit Your Project"
 
 ---
@@ -155,6 +156,9 @@ Full component detail, quickstart commands, VRAM tiers, starter `policy.yaml`, a
 | `brainstorming_artifact.md` | Full thesis / system rationale |
 | `talking_points.md` | Presentation spine, framing, one-liners (incl. §Sponsor tech — why vLLM/Nemotron) |
 | `nemotron_bounty_writeup.md` | **Submission-ready** written explanation required by the Nemotron bounty |
+| `hackathon_demo_plan.md` | **Operational demo plan** — arc, booth strategy, proof screens, Sunday AM runbook |
+| `MORNING_CHECKLIST.md` | **Self-contained Sunday-morning runbook** (deadlines, critical path, commands) |
+| `probe_report_to_pr.md` | The "Henry" report→PR probe deep-dive + real production evidence |
 | `specs.md` | Terse probe/scoring outline |
 | `probe_legacy_legibility.md` | Deep-dive on the Live-vs-Legacy probe |
 | `demo_org_change_delta.md` | **The hero demo** — org change-delta, built on platform-to-prod |

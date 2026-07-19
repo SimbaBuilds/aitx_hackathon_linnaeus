@@ -55,6 +55,12 @@ This Brev instance **cannot be stopped/started, only deleted** — and it bills 
 
 *(append below — newest first)*
 
+- 2026-07-18 (infra): 🆕 **Two new deliverables landed — heads up for engine/UI overlap.**
+  - **Event-driven trigger** (L28, Live Data track hook): `scripts/watch-trigger.ts` — polls Gmail → cheap Haiku classifier ("operability-relevant change?") → dispatches a re-audit (live on Nemotron if `CANDLE_BASE_URL` up, else replays banked Δ+53.7). Reuses `surfaces/gmail-search` + `google-auth` + `engine/runProbe`. Standalone script; no engine changes.
+  - **Henry report→PR probe** (read-only): added `report-to-pr` to `probes/registry.ts` (PROBE_REGISTRY only — **NOT in BATTERY_IDS**, so the banked 5-probe board + `fixtures/demo.json` are untouched). Deep-dive `probe_report_to_pr.md`, evidence `henry_quo_e2e.PNG`. Run via `run-audit.ts report-to-pr`.
+  - Minor: fixed stale "Opus 4.8" → "Haiku 4.5" dev-candle labels in `run-audit.ts` / `run-billing-delta.ts` (M1 is Haiku now).
+  - **If you're editing `probes/registry.ts` too**, note I only *appended* `reportToPr` + one registry line — should merge cleanly, but rebase-aware.
+
 - 2026-07-18 (infra): 🔴 **CANDLE IS OFFLINE — the Brev box auto-deleted when credits ran out.** The endpoint in `.env.local` (`CANDLE_BASE_URL=https://8000-6b6iq7v4d.brevlab.com/v1`) is **dead** — any measured run pointed at it will fail. **Nothing lost:** the hero delta, the full 5-probe board, and a vLLM batching A/B are all banked in `results/*.json` + `fixtures/demo.json` and survive.
   - **Redeploy is Sunday AM** (~15 min via `scripts/serving/run_vllm.sh`). A fresh instance gets a **NEW** `brevlab.com` URL. Infra will spin it up and **update `CANDLE_BASE_URL` in `.env.local`** before judging.
   - **➡️ Until you see a new `CANDLE_BASE_URL` land in `.env.local`, do NOT run anything that hits the candle** (it'll just error on the dead URL). Once repointed, measured runs work again.

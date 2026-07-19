@@ -41,8 +41,19 @@
    - the **money-shot delta** in the product UI (16.8 → 70.5),
    - **NEW:** expand an org-board finding to show the **trace** (repo → Gmail reach → `no-owner` stall) — beat 6, watchable.
    → This recording is your ambient/fallback content whether or not the box stays up.
-6. **Arrange + practice the proof screens** (below) once, so it's muscle memory.
-7. **Keep the box up through 12–3** for the NVIDIA/vLLM judges; kill it if idle after. Don't leave it burning between judges.
+6. **Record the event-driven trigger** (the Live Data track beat) — it demos box-up OR box-down:
+   ```bash
+   npx tsx scripts/watch-trigger.ts --sample     # fires on the deploy email → catches Δ+53.7
+   npx tsx scripts/watch-trigger.ts              # real Gmail poll (shows the classifier saying NO to noise)
+   ```
+   Narrative: *"a deploy email lands → Linnaeus wakes, decides it's operability-relevant, re-audits, catches the regression."* If the box is up it re-audits live; if down it replays the banked delta.
+7. *(optional, box up)* **Measure the Henry report→PR probe on Nemotron** for a real number:
+   ```bash
+   npx tsx scripts/run-audit.ts report-to-pr
+   ```
+   Pair the score with the real prod screenshot `henry_quo_e2e.PNG`.
+8. **Arrange + practice the proof screens** (below) once, so it's muscle memory.
+9. **Keep the box up through 12–3** for the NVIDIA/vLLM judges; kill it if idle after. Don't leave it burning between judges.
 
 ---
 
@@ -86,6 +97,10 @@ You never say "trust me" — you show the server's own telemetry.
 4. **Codebase board** — 4/5 legible.
 5. **Synthesis** — frontier model invented 8 grounded probes from my real org. *[you don't have to know your gaps]*
 6. **Org negative-space board** — finds the approver's name in Gmail, still scores `no-owner`. **The absence is the finding.** *[org — instrument MATTERS]*
+
+**Plus two supporting beats:**
+- **Event-driven trigger** (Live Data track) — `scripts/watch-trigger.ts`: a deploy email → classifier wakes → re-audit catches the regression. The heartbeat/Claw beat.
+- **Report→PR "Henry" probe** — the dev maintenance loop; pair the probe with the real prod screenshot `henry_quo_e2e.PNG` ("here it is closing in my production system").
 
 - **Track/bounty framing:** anchor to **bounties** (vLLM $500 · Nemotron $100/head · Antler Commercializable). Track home = **Red Hat Live Data** (the trigger/heartbeat). **Do NOT pitch Recursive Intelligence** (our delta is a caught regression, not self-improvement).
 - **Why vLLM (the "why"):** self-hosting keeps the instrument *calibrated & reproducible* — a correctness requirement, not a cost play. A drifting hosted API can't be a standard candle.
