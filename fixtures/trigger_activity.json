@@ -1,0 +1,41 @@
+{
+  "target": "SKMD",
+  "_note": "Event log for the Linnaeus trigger (L28, Red Hat Live Data track). The UI (TriggerView) ANONYMIZES every string at render via anonymize.ts, matching the synth-board pattern. scripts/watch-trigger.ts appends a new event here on each fire (newest first).",
+  "events": [
+    {
+      "ts": "2026-07-19T09:14:22.000Z",
+      "source": "gmail",
+      "subject": "nxtyou.io is live in production 🚀",
+      "from": "Cameron Hightower",
+      "classifier_model": "claude-haiku-4-5",
+      "relevant": true,
+      "reason": "New direct-to-consumer (D2C) platform in production with shared backend/DB and an incomplete billing path — a new integration surface and operational gap for an agent to navigate.",
+      "dispatched": true,
+      "dispatch_kind": "re-audit",
+      "delta": 53.7,
+      "delta_probe": "billing-regression"
+    },
+    {
+      "ts": "2026-07-19T09:02:10.000Z",
+      "source": "gmail",
+      "subject": "Need some nxtyou test data for Tony to look at",
+      "from": "Cameron Hightower",
+      "classifier_model": "claude-haiku-4-5",
+      "relevant": false,
+      "reason": "Informal request to share test data between colleagues; no new platform, process, vendor, person change, or deploy signal.",
+      "dispatched": false
+    },
+    {
+      "ts": "2026-07-19T08:30:00.000Z",
+      "source": "cron",
+      "subject": "Scheduled drift sweep (weekly)",
+      "from": "system",
+      "classifier_model": "—",
+      "relevant": true,
+      "reason": "Periodic operability re-check for decay that no discrete event caused (a stale runbook, a rotted dependency).",
+      "dispatched": true,
+      "dispatch_kind": "drift-sweep",
+      "delta": 0.0
+    }
+  ]
+}

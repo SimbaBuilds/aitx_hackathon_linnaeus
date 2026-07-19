@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HeatmapView } from "@/components/linnaeus/HeatmapView";
 import { FindingsView } from "@/components/linnaeus/FindingsView";
 import { DeltaView } from "@/components/linnaeus/DeltaView";
+import { TriggerView } from "@/components/linnaeus/TriggerView";
 import { afterRun, org, surfaces } from "@/components/linnaeus/data";
 
 // Linnaea borealis (the twinflower) — Linnaeus's namesake. Two nodding bells.
@@ -103,6 +104,7 @@ export function Dashboard() {
           <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
           <TabsTrigger value="findings">Findings</TabsTrigger>
           <TabsTrigger value="delta">Deltas</TabsTrigger>
+          <TabsTrigger value="triggers">Field Log</TabsTrigger>
         </TabsList>
         <TabsContent value="heatmap">
           <HeatmapView />
@@ -112,6 +114,9 @@ export function Dashboard() {
         </TabsContent>
         <TabsContent value="delta">
           <DeltaView />
+        </TabsContent>
+        <TabsContent value="triggers">
+          <TriggerView />
         </TabsContent>
       </Tabs>
     </div>

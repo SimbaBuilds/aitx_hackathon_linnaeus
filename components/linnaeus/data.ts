@@ -4,6 +4,7 @@
 import demoJson from "@/fixtures/demo.json";
 import heatmapJson from "@/fixtures/heatmap.json";
 import synthBoardJson from "@/results/nemotron_synth_board.json";
+import triggerJson from "@/fixtures/trigger_activity.json";
 import { PROBE_REGISTRY } from "@/probes";
 import { anonymize } from "@/components/linnaeus/anonymize";
 import type {
@@ -231,6 +232,53 @@ export interface ProbeDelta {
   afterScore: number;
   delta: number;
 }
+
+// ── Trigger activity log (fixtures/trigger_activity.json) ──────────────────────
+// The event-driven beat (L28, Red Hat Live Data): the always-on classifier watches
+// event surfaces and dispatches a re-audit when an operability-relevant change
+// lands. Every string is anonymized at render (live identifiers in the raw log).
+export interface TriggerEvent {
+  ts: string;
+  source: string; // gmail | cron | …
+  subject: string; // anonymized
+  from: string; // anonymized
+  classifierModel: string;
+  relevant: boolean; // classifier verdict
+  reason: string; // anonymized
+  dispatched: boolean;
+  dispatchKind: string | null; // re-audit | drift-sweep
+  delta: number | null; // friction delta caught, when a re-audit ran
+  deltaProbe: string | null;
+}
+
+interface TriggerRow {
+  ts: string;
+  source: string;
+  subject: string;
+  from?: string;
+  classifier_model?: string;
+  relevant: boolean;
+  reason: string;
+  dispatched: boolean;
+  dispatch_kind?: string;
+  delta?: number;
+  delta_probe?: string;
+}
+const triggerData = triggerJson as unknown as { events: TriggerRow[] };
+
+export const triggerEvents: TriggerEvent[] = triggerData.events.map((e) => ({
+  ts: e.ts,
+  source: e.source,
+  subject: anonymize(e.subject),
+  from: anonymize(e.from ?? ""),
+  classifierModel: e.classifier_model ?? "—",
+  relevant: e.relevant,
+  reason: anonymize(e.reason),
+  dispatched: e.dispatched,
+  dispatchKind: e.dispatch_kind ?? null,
+  delta: typeof e.delta === "number" ? e.delta : null,
+  deltaProbe: e.delta_probe ? anonymize(e.delta_probe) : null,
+}));
 
 export const probeDeltas: ProbeDelta[] = (demo.deltas ?? [])
   .map((d): ProbeDelta | null => {

@@ -22,7 +22,7 @@
 //   npx tsx scripts/watch-trigger.ts --query "subject:deploy newer_than:60d"
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { readFileSync, existsSync } from "fs";
+import { readFileSync, writeFileSync, existsSync } from "fs";
 import { join } from "path";
 import { createCandle } from "@/lib/candle";
 import { allSurfaceTools } from "@/surfaces";
@@ -148,11 +148,11 @@ const AFTER_SPEC =
   "exist for EACH of these client types?";
 
 // Replay the banked, Nemotron-measured delta so the trigger still demos with the box down.
-function replayBanked(reason: string): void {
+function replayBanked(reason: string): number | null {
   const p = join(process.cwd(), "results", "nemotron_billing_delta.json");
   if (!existsSync(p)) {
     console.log("  ⚠️  no banked delta to replay (results/nemotron_billing_delta.json missing).");
-    return;
+    return null;
   }
   const banked = JSON.parse(readFileSync(p, "utf8")) as { before: Finding; after: Finding };
   const b = frictionScore(banked.before.friction_vector);
@@ -161,16 +161,16 @@ function replayBanked(reason: string): void {
   console.log(`     before: ${banked.before.status.padEnd(9)} friction ${b.toFixed(1)}`);
   console.log(`     after:  ${banked.after.status.padEnd(9)} friction ${a.toFixed(1)}   ${banked.after.root_cause_tag}`);
   console.log(`     Δ friction = +${(a - b).toFixed(1)}  ← regression caught`);
+  return a - b;
 }
 
 // ── Dispatch: re-audit live on Nemotron, or replay the banked measured delta ──
-async function dispatchReaudit(forceReplay: boolean): Promise<void> {
+async function dispatchReaudit(forceReplay: boolean): Promise<{ delta: number | null; live: boolean }> {
   const candle = createCandle();
   const live = candle.isProd && !forceReplay; // prod = Nemotron box is up
 
   if (!live) {
-    replayBanked(forceReplay ? "replay forced" : "box is down");
-    return;
+    return { delta: replayBanked(forceReplay ? "replay forced" : "box is down"), live: false };
   }
 
   // Live re-audit on the pinned Nemotron candle — fall back to replay if the
@@ -194,14 +194,58 @@ async function dispatchReaudit(forceReplay: boolean): Promise<void> {
     console.log(`     before: ${before.status.padEnd(9)} friction ${b.toFixed(1)}`);
     console.log(`     after:  ${after.status.padEnd(9)} friction ${a.toFixed(1)}   ${after.root_cause_tag}`);
     console.log(`     Δ friction = +${(a - b).toFixed(1)}  ← regression caught LIVE`);
+    return { delta: a - b, live: true };
   } catch (e) {
     console.log(`     ⚠️  live candle unreachable (${(e as Error).message.slice(0, 60)}…) — falling back.`);
-    replayBanked("live endpoint unreachable");
+    return { delta: replayBanked("live endpoint unreachable"), live: false };
+  }
+}
+
+// ── Append this event to the Field Log fixture (what the UI Triggers tab reads) ──
+function logActivity(rec: {
+  evt: MailEvent;
+  relevant: boolean;
+  reason: string;
+  model: string;
+  dispatched: boolean;
+  delta: number | null;
+}): void {
+  const p = join(process.cwd(), "fixtures", "trigger_activity.json");
+  let doc: { target?: string; _note?: string; events: unknown[] } = { target: "SKMD", events: [] };
+  if (existsSync(p)) {
+    try {
+      doc = JSON.parse(readFileSync(p, "utf8"));
+    } catch {
+      /* keep default */
+    }
+  }
+  const event: Record<string, unknown> = {
+    ts: new Date().toISOString(),
+    source: rec.evt.id === "sample" ? "gmail" : "gmail",
+    subject: rec.evt.subject,
+    from: rec.evt.from,
+    classifier_model: rec.model,
+    relevant: rec.relevant,
+    reason: rec.reason,
+    dispatched: rec.dispatched,
+  };
+  if (rec.dispatched) event.dispatch_kind = "re-audit";
+  if (rec.delta !== null) {
+    event.delta = Number(rec.delta.toFixed(1));
+    event.delta_probe = "billing-regression";
+  }
+  // newest first, cap the log so repeated runs don't grow unbounded
+  doc.events = [event, ...(doc.events ?? [])].slice(0, 12);
+  try {
+    writeFileSync(p, JSON.stringify(doc, null, 2) + "\n");
+    console.log(`  📝 logged to fixtures/trigger_activity.json → the UI Field Log`);
+  } catch {
+    /* read-only fs is non-fatal */
   }
 }
 
 // ── One heartbeat: poll → classify → (maybe) dispatch ────────────────────────
-async function tick(opts: { query: string; sample: boolean; replay: boolean }): Promise<void> {
+async function tick(opts: { query: string; sample: boolean; replay: boolean; noLog: boolean }): Promise<void> {
   const ts = new Date().toISOString();
   console.log(`\n[${ts}] 🫀 heartbeat — scanning event surfaces (gmail)…`);
 
@@ -220,10 +264,12 @@ async function tick(opts: { query: string; sample: boolean; replay: boolean }): 
 
   if (!c.relevant) {
     console.log(`  → no dispatch (event is not operability-relevant).`);
+    if (!opts.noLog) logActivity({ evt, relevant: false, reason: c.reason, model: c.model, dispatched: false, delta: null });
     return;
   }
   console.log(`  → WAKE: dispatching an operability re-audit of the changed org…`);
-  await dispatchReaudit(opts.replay);
+  const d = await dispatchReaudit(opts.replay);
+  if (!opts.noLog) logActivity({ evt, relevant: true, reason: c.reason, model: c.model, dispatched: true, delta: d.delta });
 }
 
 async function main(): Promise<void> {
@@ -233,6 +279,7 @@ async function main(): Promise<void> {
     query: (argv.includes("--query") ? argv[argv.indexOf("--query") + 1] : "") || DEFAULT_QUERY,
     sample: argv.includes("--sample"),
     replay: argv.includes("--replay"),
+    noLog: argv.includes("--no-log"),
     watch: argv.includes("--watch"),
     interval: (argv.includes("--interval") ? Number(argv[argv.indexOf("--interval") + 1]) : 20) || 20,
   };
