@@ -96,8 +96,6 @@ export function Dashboard() {
         </div>
       </header>
       <div className="mb-8 mt-2.5 flex items-center justify-between font-mono text-[11px] tracking-[0.06em] text-muted-foreground">
-        <span>Coll. 2026-07-18&nbsp;·&nbsp;Det. Linnaeus v0.4</span>
-        <span>No. LIN—0417</span>
       </div>
 
       <Tabs defaultValue="scorecard" className="gap-6">
