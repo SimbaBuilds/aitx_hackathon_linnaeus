@@ -58,3 +58,4 @@ jupyter-state-*.png
 
 # Dev-candle validation board (holds live identifiers; never the demo source)
 results/dev_synth_board.json
+submission_form.md
