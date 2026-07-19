@@ -211,6 +211,36 @@ export const orgProbes: OrgProbe[] = synthBoard.findings
   .filter((p): p is OrgProbe => p !== null)
   .sort((a, b) => b.score - a.score);
 
+// ── Runnable probe catalogue (Run Now panel) ──────────────────────────────────
+// The two selectable batteries the operator can fire on demand: the codebase-level
+// universal set (demo.probes) and the org-level cross-surface set (orgProbes).
+// expectedScore is the last observed friction for that probe (drives the run
+// animation's revealed number + the friction chip in the checklist).
+export interface RunnableProbe {
+  id: string;
+  label: string;
+  set: "codebase" | "org";
+  expectedScore: number | null;
+}
+
+const codebaseProbeIds = demo.probes.map((p) => p.id);
+export const runnableProbes: RunnableProbe[] = [
+  ...demo.probes.map((p): RunnableProbe => ({
+    id: p.id,
+    label: anonymize(p.category),
+    set: "codebase",
+    expectedScore: afterFindingByProbe[p.id] ? scoreOf(afterFindingByProbe[p.id]) : null,
+  })),
+  ...orgProbes
+    .filter((op) => !codebaseProbeIds.includes(op.probeId))
+    .map((op): RunnableProbe => ({
+      id: op.probeId,
+      label: op.category,
+      set: "org",
+      expectedScore: op.score,
+    })),
+];
+
 // THE money shot: same probe, before (completed) vs after (stalled).
 const BILLING = "billing-regression";
 export const billingBefore = findings.find(
