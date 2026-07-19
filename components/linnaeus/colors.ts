@@ -40,19 +40,19 @@ export function heatFill(heat: number): string {
 export const heatInk = (heat: number): string =>
   heat >= 0.42 ? "#f7fbff" : "#0b0b0b";
 
-// ── Status palette (fixed, never themed — palette.md § Status) ──
+// ── Status palette (cyanotype herbarium: blue = calm, red = alarm) ──
 export const STATUS: Record<FindingStatus, { color: string; label: string }> = {
-  completed: { color: "#0ca30c", label: "Completed" }, // good
-  stalled: { color: "#d03b3b", label: "Stalled" }, // critical
-  failed_to_author: { color: "#8f1f1f", label: "Failed to author" }, // critical+
+  completed: { color: "#2e5e9e", label: "Completed" }, // blue = fluent
+  stalled: { color: "#c0392b", label: "Stalled" }, // red = alarm
+  failed_to_author: { color: "#8f1f1f", label: "Failed to author" }, // deep red
 };
 
-export const FRICTION_GOOD = "#0ca30c";
-export const FRICTION_BAD = "#d03b3b";
+export const FRICTION_GOOD = "#2e5e9e"; // blue
+export const FRICTION_BAD = "#c0392b"; // red
 
-/** Colour a friction score by band (relative reading only). */
+/** Colour a friction score by band — blue while fluent, red once it stalls. */
 export const frictionColor = (s: number): string =>
-  s >= 70 ? "#d03b3b" : s >= 35 ? "#ec835a" : s >= 18 ? "#eda100" : "#0ca30c";
+  s >= 70 ? "#c0392b" : s >= 35 ? "#1f4e8c" : "#2e5e9e";
 
 // ── Remediation taxonomy = categorical identity (palette.md § Categorical) ──
 // Each type gets a fixed slot; the text label is always present (secondary

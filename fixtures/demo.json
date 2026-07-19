@@ -1,5 +1,5 @@
 {
-  "_note": "Fixture sample conforming to Contract A (lib/contracts.ts). WS-C builds the 3 views against this; WS-D round-trips it through Supabase. friction scores in _derived are frictionScore(friction_vector) from lib/instrumentation.ts \u2014 recompute, do not hardcode in UI.",
+  "_note": "Fixture sample conforming to Contract A (lib/contracts.ts). WS-C builds the 3 views against this; WS-D round-trips it through Supabase. friction scores in _derived are frictionScore(friction_vector) from lib/instrumentation.ts — recompute, do not hardcode in UI.",
   "target": "Telehealth Monorepo",
   "surfaces": [
     {
@@ -20,12 +20,12 @@
     {
       "id": "sf_notion",
       "kind": "notion",
-      "access_status": "connected"
+      "access_status": "unavailable"
     },
     {
       "id": "sf_rds",
       "kind": "rds",
-      "access_status": "connected"
+      "access_status": "unauthorized"
     }
   ],
   "probes": [
@@ -127,7 +127,7 @@
       "root_cause_tag": "stale-code",
       "remediation": {
         "type": "Fix",
-        "content": "Update the monthly invoice script to price the new D2C patient billing \u2014 it currently only handles the existing medspa clients.",
+        "content": "Update the monthly invoice script to price the new D2C patient billing — it currently only handles the existing medspa clients.",
         "target": "telehealth_api/scripts/billing/generate_monthly_invoice.py",
         "provenance": "candle-inferred (confirmed by owner: D2C billing not yet implemented)"
       },

@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Linnaeus — Agent Operability Audit</title>
+<style>
+  :root{
+    --bone:#EDF1F6;
+    --surface:#F7F9FC;
+    --ink:#17222E;
+    --muted:#5B6675;
+    --hair:#D4DCE7;
+    --moss:#2E5E9E;
+    --sepia:#496079;
+    --oxblood:#C0392B;
+    --heat0:#DCE6F4;
+    --heat1:#4F84C4;
+    --heat2:#123A6B;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+    --mono:ui-monospace,"SF Mono",Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bone);
+    color:var(--ink);
+    font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+  }
+  .page{max-width:1240px;margin:0 auto;padding:48px 56px 80px}
+
+  /* ---- shared label / type ---- */
+  .kicker{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+  .smallcaps{
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+  h1,h2,h3{font-family:var(--serif);font-weight:600;color:var(--ink);margin:0}
+  .mono{font-family:var(--mono)}
+  .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+  /* ---- masthead ---- */
+  .masthead{
+    display:flex;justify-content:space-between;align-items:flex-end;
+    padding-bottom:22px;border-bottom:2px solid var(--ink);
+  }
+  .brandwrap{display:flex;align-items:center;gap:20px}
+  .brand h1{font-size:44px;letter-spacing:.01em;line-height:1}
+  .brand .tag{font-family:var(--serif);font-style:italic;color:var(--sepia);font-size:15px;margin-top:6px}
+  .motif{width:58px;height:74px;flex:0 0 auto}
+  .masthead-right{text-align:right}
+  .masthead-right .row{margin-top:5px}
+  .masthead-right .row b{font-family:var(--mono);color:var(--ink);font-weight:600;letter-spacing:.02em}
+
+  .subrule{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-top:10px;padding-top:9px;
+    font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.06em;
+  }
+
+  /* ---- plate section ---- */
+  section.plate{margin-top:54px}
+  .plate-head{display:flex;align-items:baseline;gap:16px;border-bottom:1px solid var(--hair);padding-bottom:12px;margin-bottom:26px}
+  .plate-no{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--sepia)}
+  .plate-head h2{font-size:26px;letter-spacing:.01em}
+  .plate-head .plate-sub{margin-left:auto;max-width:360px;text-align:right;font-size:12.5px;color:var(--muted);font-family:var(--serif);font-style:italic}
+
+  /* ---- Plate I : heatmap specimens ---- */
+  .legend{
+    display:flex;align-items:center;gap:18px;margin-bottom:22px;
+  }
+  .rampbar{height:11px;width:220px;border:1px solid var(--hair);
+    background:linear-gradient(90deg,var(--heat0),var(--heat1),var(--heat2));}
+  .rampscale{display:flex;justify-content:space-between;width:220px;margin-top:4px}
+
+  .specimens{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:20px;
+  }
+  .specimen{
+    position:relative;
+    background:var(--surface);
+    border:1px solid var(--hair);
+    padding:18px 18px 16px;
+    display:flex;flex-direction:column;min-height:186px;
+  }
+  .specimen::before{
+    /* mounting corners, herbarium sheet feel */
+    content:"";position:absolute;inset:7px;border:1px solid transparent;
+    background:
+      linear-gradient(var(--hair),var(--hair)) left 0 top 0/12px 1px no-repeat,
+      linear-gradient(var(--hair),var(--hair)) left 0 top 0/1px 12px no-repeat,
+      linear-gradient(var(--hair),var(--hair)) right 0 top 0/12px 1px no-repeat,
+      linear-gradient(var(--hair),var(--hair)) right 0 top 0/1px 12px no-repeat,
+      linear-gradient(var(--hair),var(--hair)) left 0 bottom 0/12px 1px no-repeat,
+      linear-gradient(var(--hair),var(--hair)) left 0 bottom 0/1px 12px no-repeat,
+      linear-gradient(var(--hair),var(--hair)) right 0 bottom 0/12px 1px no-repeat,
+      linear-gradient(var(--hair),var(--hair)) right 0 bottom 0/1px 12px no-repeat;
+    pointer-events:none;
+  }
+  .specimen.stalled{border-color:var(--oxblood);box-shadow:inset 0 0 0 1px rgba(192,57,43,.18)}
+  .spec-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+  .spec-no{font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:var(--muted)}
+  .swatch{
+    width:46px;height:46px;flex:0 0 auto;border:1px solid rgba(38,34,26,.22);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-size:12px;font-weight:600;
+  }
+  .spec-path{
+    font-family:var(--mono);font-size:12.5px;line-height:1.45;color:var(--ink);
+    margin-top:16px;word-break:break-word;
+  }
+  .spec-path .dir{color:var(--muted)}
+  .spec-meta{margin-top:auto;padding-top:14px;border-top:1px solid var(--hair)}
+  .spec-meta .probe{font-family:var(--mono);font-size:11.5px;color:var(--moss)}
+  .spec-meta .probe.dim{color:var(--muted);font-style:normal}
+  .heatval{display:flex;align-items:baseline;gap:6px;margin-top:2px}
+  .heatval .v{font-family:var(--mono);font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}
+  .heatval .u{font-size:10.5px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;font-family:var(--mono)}
+  .stall-tag{
+    display:inline-flex;align-items:center;gap:5px;
+    font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--oxblood);border:1px solid var(--oxblood);padding:2px 6px;margin-top:9px;align-self:flex-start;
+    background:rgba(192,57,43,.05);
+  }
+  .stall-tag .dot{width:5px;height:5px;background:var(--oxblood);border-radius:50%}
+
+  /* ---- Plate II : findings catalog ---- */
+  table.catalog{width:100%;border-collapse:collapse}
+  table.catalog thead th{
+    font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--muted);text-align:left;font-weight:600;
+    padding:0 14px 9px;border-bottom:1.5px solid var(--ink);
+  }
+  table.catalog thead th.rt{text-align:right}
+  table.catalog tbody td{
+    padding:13px 14px;border-bottom:1px solid var(--hair);vertical-align:top;font-size:13px;
+  }
+  table.catalog tbody tr:last-child td{border-bottom:1px solid var(--hair)}
+  td.probe{font-family:var(--mono);font-size:13px;color:var(--ink);white-space:nowrap}
+  td.friction{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums;font-size:14px;font-weight:600}
+  .status{
+    font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;
+    display:inline-flex;align-items:center;gap:6px;
+  }
+  .status.completed{color:var(--moss)}
+  .status.stalled{color:var(--oxblood);font-weight:600}
+  .status .mk{width:6px;height:6px;flex:0 0 auto}
+  .status.completed .mk{background:var(--moss);border-radius:50%}
+  .status.stalled .mk{background:var(--oxblood)}
+  td.cause,td.remedy{color:var(--muted);font-family:var(--serif);font-size:13px}
+  td.cause .code{font-family:var(--mono);font-size:11.5px;color:var(--sepia)}
+  td.remedy .fix{color:var(--ink)}
+  .empty{color:var(--hair);font-family:var(--mono)}
+  tr.is-stalled td{background:rgba(192,57,43,.035)}
+
+  /* friction mini bar in table */
+  .fbar{height:4px;background:var(--hair);margin-top:6px;position:relative;width:120px;margin-left:auto}
+  .fbar > i{position:absolute;left:0;top:0;bottom:0;display:block}
+
+  /* ---- Plate III : delta ---- */
+  .delta-wrap{display:grid;grid-template-columns:300px 1fr;gap:44px;align-items:start}
+  .delta-card{background:var(--surface);border:1px solid var(--hair);padding:22px}
+  .delta-card .probe-id{font-family:var(--mono);font-size:14px;color:var(--moss);margin-bottom:4px}
+  .delta-card .task{font-family:var(--serif);font-style:italic;font-size:13.5px;color:var(--ink);line-height:1.55}
+  .delta-card .divider{height:1px;background:var(--hair);margin:16px 0}
+  .deltafig{display:flex;align-items:baseline;gap:12px}
+  .deltafig .big{font-family:var(--mono);font-size:40px;font-weight:600;color:var(--oxblood);font-variant-numeric:tabular-nums;line-height:1}
+  .deltafig .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+
+  .track-area{padding-top:4px}
+  .track-caption{display:flex;justify-content:space-between;margin-bottom:30px}
+  .measure{text-align:center}
+  .measure .cap{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+  .measure .val{font-family:var(--mono);font-size:30px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:4px}
+  .measure.before .val{color:var(--moss)}
+  .measure.after .val{color:var(--oxblood)}
+  .measure .st{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;margin-top:3px}
+  .measure.before .st{color:var(--moss)}
+  .measure.after .st{color:var(--oxblood)}
+
+  .track{position:relative;height:70px;margin-top:14px}
+  .track .axis{position:absolute;left:0;right:0;top:34px;height:10px;
+    background:linear-gradient(90deg,var(--heat0),var(--heat1) 60%,var(--heat2));border:1px solid var(--hair)}
+  .track .tick{position:absolute;top:44px;width:1px;height:8px;background:var(--muted)}
+  .track .ticklbl{position:absolute;top:54px;transform:translateX(-50%);font-family:var(--mono);font-size:10px;color:var(--muted)}
+  .marker{position:absolute;top:0;transform:translateX(-50%);text-align:center}
+  .marker .stem{width:2px;height:34px;margin:0 auto;background:var(--ink)}
+  .marker .head{font-family:var(--mono);font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;
+    padding:2px 7px;border:1px solid var(--ink);background:var(--surface);white-space:nowrap}
+  .marker.before .head{color:var(--moss);border-color:var(--moss)}
+  .marker.after .head{color:var(--oxblood);border-color:var(--oxblood)}
+  .marker.before .stem{background:var(--moss)}
+  .marker.after .stem{background:var(--oxblood)}
+  .delta-arc{position:absolute;top:20px;height:14px;border:1.5px solid var(--sepia);border-bottom:none;}
+  .delta-arc .amt{position:absolute;top:-19px;left:50%;transform:translateX(-50%);
+    font-family:var(--mono);font-size:12px;font-weight:600;color:var(--sepia);white-space:nowrap;background:var(--bone);padding:0 6px}
+
+  /* ---- org-level strip ---- */
+  .org-strip{margin-top:40px;border-top:1px solid var(--hair);padding-top:24px}
+  .org-strip .kicker{margin-bottom:16px;display:block}
+  .org-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .org-card{border:1px solid var(--hair);border-left:2px solid var(--oxblood);background:var(--surface);padding:15px 16px}
+  .org-card .top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px}
+  .org-card .surf{font-family:var(--mono);font-size:11px;color:var(--sepia);letter-spacing:.04em}
+  .org-card .sc{font-family:var(--mono);font-size:18px;font-weight:600;color:var(--oxblood);font-variant-numeric:tabular-nums}
+  .org-card .task{font-family:var(--serif);font-style:italic;font-size:12.5px;color:var(--ink);line-height:1.5}
+  .org-card .st{margin-top:10px}
+
+  footer{margin-top:64px;padding-top:16px;border-top:2px solid var(--ink);
+    display:flex;justify-content:space-between;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ===== MASTHEAD ===== -->
+  <header class="masthead">
+    <div class="brandwrap">
+      <svg class="motif" viewBox="0 0 58 74" fill="none" stroke="#2E5E9E" stroke-width="1.1" stroke-linecap="round" aria-hidden="true">
+        <!-- twinflower: Linnaea borealis — two nodding bells on a thin stem -->
+        <path d="M29 72 C29 58 29 44 29 34"/>
+        <path d="M29 40 C24 40 16 39 12 34"/>
+        <path d="M29 44 C34 44 42 43 46 38"/>
+        <!-- left nodding bell -->
+        <path d="M12 34 C7 33 4 28 6 23 C8 19 13 18 16 21 C19 24 18 31 12 34 Z"/>
+        <path d="M8 24 L7 21 M11 22 L11 19 M14 23 L15 20"/>
+        <!-- right nodding bell -->
+        <path d="M46 38 C51 37 54 32 52 27 C50 23 45 22 42 25 C39 28 40 35 46 38 Z"/>
+        <path d="M50 28 L52 25 M47 26 L48 23 M43 27 L43 24"/>
+        <!-- leaves at base -->
+        <path d="M29 60 C24 58 21 60 20 63 M29 60 C34 58 37 60 38 63"/>
+      </svg>
+      <div class="brand">
+        <h1>Linnaeus</h1>
+        <div class="tag">A cyanotype field guide to agent operability</div>
+      </div>
+    </div>
+    <div class="masthead-right">
+      <div class="kicker">Agent Operability Audit</div>
+      <div class="row smallcaps">Specimen&nbsp;·&nbsp;<b>Telehealth Monorepo</b></div>
+      <div class="row smallcaps">Candle&nbsp;·&nbsp;<b>nemotron</b></div>
+    </div>
+  </header>
+  <div class="subrule">
+    <span>Coll.&nbsp;2026-07-18 &nbsp;·&nbsp; Det. Linnaeus v0.4 &nbsp;·&nbsp; 6 modules · 5 probes · 3 org-probes</span>
+    <span>No. LIN—0417</span>
+  </div>
+
+  <!-- ===== PLATE I ===== -->
+  <section class="plate" id="plateI">
+    <div class="plate-head">
+      <span class="plate-no">Plate I</span>
+      <h2>Operability Herbarium</h2>
+      <span class="plate-sub">Each specimen mounts one code module, tinted by predicted friction (0–1).</span>
+    </div>
+
+    <div class="legend">
+      <div>
+        <div class="rampbar"></div>
+        <div class="rampscale"><span class="smallcaps">0.0 fluent</span><span class="smallcaps">1.0 friction</span></div>
+      </div>
+      <div class="smallcaps" style="max-width:340px;line-height:1.7">Pale → Prussian blue indicates rising predicted friction. A red border denotes an observed stall.</div>
+    </div>
+
+    <div class="specimens">
+      <!-- 0.92 STALLED -->
+      <div class="specimen stalled">
+        <div class="spec-top">
+          <span class="spec-no">SPEC. i</span>
+          <div class="swatch" style="background:#123A6B;color:#EAF1FA;border-color:#0d2c52">0.92</div>
+        </div>
+        <div class="spec-path"><span class="dir">telehealth_api/scripts/</span>monthly_billing.py</div>
+        <div class="stall-tag"><span class="dot"></span>Stalled</div>
+        <div class="spec-meta">
+          <div class="probe">▸ billing-regression</div>
+          <div class="heatval"><span class="v">0.92</span><span class="u">friction</span></div>
+        </div>
+      </div>
+
+      <!-- 0.61 -->
+      <div class="specimen">
+        <div class="spec-top">
+          <span class="spec-no">SPEC. ii</span>
+          <div class="swatch" style="background:#2E5E9E;color:#EAF1FA;border-color:#244d84">0.61</div>
+        </div>
+        <div class="spec-path"><span class="dir">telehealth_api/services/</span>prescription_pdf.py</div>
+        <div class="spec-meta">
+          <div class="probe">▸ live-vs-legacy-pdf</div>
+          <div class="heatval"><span class="v">0.61</span><span class="u">friction</span></div>
+        </div>
+      </div>
+
+      <!-- 0.55 -->
+      <div class="specimen">
+        <div class="spec-top">
+          <span class="spec-no">SPEC. iii</span>
+          <div class="swatch" style="background:#3D6DAC;color:#EAF1FA;border-color:#315a90">0.55</div>
+        </div>
+        <div class="spec-path"><span class="dir">medspa_web/</span>components</div>
+        <div class="spec-meta">
+          <div class="probe">▸ designer-contribute</div>
+          <div class="heatval"><span class="v">0.55</span><span class="u">friction</span></div>
+        </div>
+      </div>
+
+      <!-- 0.47 -->
+      <div class="specimen">
+        <div class="spec-top">
+          <span class="spec-no">SPEC. iv</span>
+          <div class="swatch" style="background:#6B97CB;color:#12233a;border-color:#5580b4">0.47</div>
+        </div>
+        <div class="spec-path"><span class="dir">telehealth_api/</span>scheduling</div>
+        <div class="spec-meta">
+          <div class="probe dim">◦ unprobed · static prediction</div>
+          <div class="heatval"><span class="v">0.47</span><span class="u">friction</span></div>
+        </div>
+      </div>
+
+      <!-- 0.41 -->
+      <div class="specimen">
+        <div class="spec-top">
+          <span class="spec-no">SPEC. v</span>
+          <div class="swatch" style="background:#86A9D4;color:#12233a;border-color:#6d93c4">0.41</div>
+        </div>
+        <div class="spec-path"><span class="dir">d2c_web/</span>app</div>
+        <div class="spec-meta">
+          <div class="probe">▸ onboard-client</div>
+          <div class="heatval"><span class="v">0.41</span><span class="u">friction</span></div>
+        </div>
+      </div>
+
+      <!-- 0.18 -->
+      <div class="specimen">
+        <div class="spec-top">
+          <span class="spec-no">SPEC. vi</span>
+          <div class="swatch" style="background:#DCE6F4;color:#4A5A6E;border-color:#c2d3ea">0.18</div>
+        </div>
+        <div class="spec-path"><span class="dir">telehealth_api/</span>auth</div>
+        <div class="spec-meta">
+          <div class="probe">▸ auth-boundary</div>
+          <div class="heatval"><span class="v">0.18</span><span class="u">friction</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PLATE II ===== -->
+  <section class="plate" id="plateII">
+    <div class="plate-head">
+      <span class="plate-no">Plate II</span>
+      <h2>Findings Catalog</h2>
+      <span class="plate-sub">Determinations from executed probes, ordered by measured friction.</span>
+    </div>
+
+    <table class="catalog">
+      <thead>
+        <tr>
+          <th style="width:200px">Probe</th>
+          <th style="width:120px">Status</th>
+          <th class="rt" style="width:150px">Friction</th>
+          <th style="width:170px">Root cause</th>
+          <th>Remediation</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="is-stalled">
+          <td class="probe">billing-regression</td>
+          <td><span class="status stalled"><span class="mk"></span>Stalled</span></td>
+          <td class="friction" style="color:var(--oxblood)">70.5
+            <div class="fbar"><i style="width:70.5%;background:var(--oxblood)"></i></div>
+          </td>
+          <td class="cause"><span class="code">stale-code</span></td>
+          <td class="remedy"><span class="fix">Update monthly invoice script for new D2C clients.</span></td>
+        </tr>
+        <tr>
+          <td class="probe">can-a-designer-contribute</td>
+          <td><span class="status completed"><span class="mk"></span>Completed</span></td>
+          <td class="friction">36.0
+            <div class="fbar"><i style="width:36%;background:var(--heat1)"></i></div>
+          </td>
+          <td class="cause"><span class="empty">—</span></td>
+          <td class="remedy"><span class="empty">—</span></td>
+        </tr>
+        <tr>
+          <td class="probe">onboard-a-client</td>
+          <td><span class="status completed"><span class="mk"></span>Completed</span></td>
+          <td class="friction">27.6
+            <div class="fbar"><i style="width:27.6%;background:var(--heat1)"></i></div>
+          </td>
+          <td class="cause"><span class="code">no-runbook</span></td>
+          <td class="remedy"><span class="empty">—</span></td>
+        </tr>
+        <tr>
+          <td class="probe">live-vs-legacy</td>
+          <td><span class="status completed"><span class="mk"></span>Completed</span></td>
+          <td class="friction">19.1
+            <div class="fbar"><i style="width:19.1%;background:var(--moss)"></i></div>
+          </td>
+          <td class="cause"><span class="empty">—</span></td>
+          <td class="remedy"><span class="empty">—</span></td>
+        </tr>
+        <tr>
+          <td class="probe">auth-boundary</td>
+          <td><span class="status completed"><span class="mk"></span>Completed</span></td>
+          <td class="friction">10.6
+            <div class="fbar"><i style="width:10.6%;background:var(--moss)"></i></div>
+          </td>
+          <td class="cause"><span class="empty">—</span></td>
+          <td class="remedy"><span class="empty">—</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ===== PLATE III ===== -->
+  <section class="plate" id="plateIII">
+    <div class="plate-head">
+      <span class="plate-no">Plate III</span>
+      <h2>Specimen Comparison</h2>
+      <span class="plate-sub">The same probe under widened scope — the divergence that exposes the stall.</span>
+    </div>
+
+    <div class="delta-wrap">
+      <div class="delta-card">
+        <div class="probe-id">▸ billing-regression</div>
+        <div class="task">“Compute this month's client invoices from usage. Run against pre-change scope (existing medspa clients) then post-change scope (incl. the new D2C clients).”</div>
+        <div class="divider"></div>
+        <div class="deltafig">
+          <span class="big">+53.7</span>
+          <span class="lbl">Δ friction<br>observed</span>
+        </div>
+      </div>
+
+      <div class="track-area">
+        <div class="track-caption">
+          <div class="measure before">
+            <div class="cap">Before · pre-change scope</div>
+            <div class="val">16.8</div>
+            <div class="st">Completed</div>
+          </div>
+          <div class="measure after">
+            <div class="cap">After · post-change scope</div>
+            <div class="val">70.5</div>
+            <div class="st">Stalled</div>
+          </div>
+        </div>
+
+        <div class="track">
+          <div class="axis"></div>
+          <!-- ticks 0..100 -->
+          <div class="tick" style="left:0%"></div><div class="ticklbl" style="left:0%">0</div>
+          <div class="tick" style="left:25%"></div><div class="ticklbl" style="left:25%">25</div>
+          <div class="tick" style="left:50%"></div><div class="ticklbl" style="left:50%">50</div>
+          <div class="tick" style="left:75%"></div><div class="ticklbl" style="left:75%">75</div>
+          <div class="tick" style="left:100%"></div><div class="ticklbl" style="left:100%">100</div>
+
+          <!-- delta arc from 16.8 to 70.5 -->
+          <div class="delta-arc" style="left:16.8%;width:53.7%"><span class="amt">Δ +53.7</span></div>
+
+          <div class="marker before" style="left:16.8%">
+            <div class="head">16.8</div>
+            <div class="stem"></div>
+          </div>
+          <div class="marker after" style="left:70.5%">
+            <div class="head">70.5</div>
+            <div class="stem"></div>
+          </div>
+        </div>
+
+        <!-- org-level strip -->
+        <div class="org-strip">
+          <span class="kicker">Org-level probes · negative space · all stalled</span>
+          <div class="org-grid">
+            <div class="org-card">
+              <div class="top"><span class="surf">repo → gmail</span><span class="sc">74.0</span></div>
+              <div class="task">“Reconcile last month's failed charges against the billing inbox and flag disputes.”</div>
+              <div class="st"><span class="status stalled"><span class="mk"></span>Stalled</span></div>
+            </div>
+            <div class="org-card">
+              <div class="top"><span class="surf">repo → gmail → calendar</span><span class="sc">86.5</span></div>
+              <div class="task">“Schedule onboarding calls for every new D2C client added this cycle.”</div>
+              <div class="st"><span class="status stalled"><span class="mk"></span>Stalled</span></div>
+            </div>
+            <div class="org-card">
+              <div class="top"><span class="surf">repo → drive</span><span class="sc">82.5</span></div>
+              <div class="task">“Assemble the quarterly compliance packet from prescription PDFs and audit logs.”</div>
+              <div class="st"><span class="status stalled"><span class="mk"></span>Stalled</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Linnaeus · Agent Operability Audit</span>
+    <span>Plates I–III · Telehealth Monorepo · candle nemotron</span>
+    <span>Det. LIN—0417 · 2026</span>
+  </footer>
+
+</div>
+</body>
+</html>

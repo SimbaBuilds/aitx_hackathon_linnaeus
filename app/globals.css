@@ -9,7 +9,8 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-heading: var(--font-serif);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -49,30 +50,31 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
+  /* ── Cyanotype herbarium palette — blue ink on cool paper ── */
+  --background: #edf1f6; /* cool paper */
+  --foreground: #17222e; /* navy ink */
+  --card: #f7f9fc;
+  --card-foreground: #17222e;
+  --popover: #f7f9fc;
+  --popover-foreground: #17222e;
+  --primary: #1f4e8c; /* prussian blue */
+  --primary-foreground: #f7f9fc;
+  --secondary: #e3e9f1;
+  --secondary-foreground: #17222e;
+  --muted: #e3e9f1;
+  --muted-foreground: #5b6675; /* slate */
+  --accent: #e3e9f1;
+  --accent-foreground: #1f4e8c;
+  --destructive: #c0392b; /* alert red (stalls) */
+  --border: #d4dce7; /* cool hairline */
+  --input: #d4dce7;
+  --ring: #2e5e9e;
+  --chart-1: #2e5e9e;
+  --chart-2: #4f84c4;
+  --chart-3: #6b97cb;
+  --chart-4: #123a6b;
+  --chart-5: #86a9d4;
+  --radius: 0.3rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
@@ -126,5 +128,14 @@
   }
   html {
     @apply font-sans;
+  }
+  /* Herbarium: serif display for headings, mono for data (set per-element). */
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-serif);
+    font-weight: 600;
+    letter-spacing: 0.01em;
   }
 }
